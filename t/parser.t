@@ -8,14 +8,14 @@ use vars qw($parsed);
 # of SQL::Parser, and are therefore subject to change.  If these tests
 # suddenly stop passing, blame Jeff Zucker.
 
-use DBD::google::parser;
+use DBD::Google::parser;
 use Test::More;
 
 plan tests => 57;
 
 # Parse an SQL statement, and return the data we care about.
 sub p {
-    my $parser = DBD::google::parser->new;
+    my $parser = DBD::Google::parser->new;
     $parser->parse($_[0])
         or die $parser->errstr;
     return $parser->decompose;

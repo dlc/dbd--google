@@ -17,7 +17,7 @@ See L<SQL::Parser>.
 
 =head1 DESCRIPTION
 
-This module defines the SQL syntax supported by DBD::google.
+This module defines the SQL syntax supported by DBD::Google.
 
 =cut
 

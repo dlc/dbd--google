@@ -11,7 +11,7 @@ my %opts = ("oe" => "utf-8",
             "safe" => 0,
             "filter" => 1);
 
-my $dbh = DBI->connect("dbi:google:", 'x' x 32, undef, \%opts);
+my $dbh = DBI->connect("dbi:Google:", 'x' x 32, undef, \%opts);
 my $sth = $dbh->prepare("SELECT * FROM google WHERE q = 'perl DBI'");
 
 ok($dbh, "Database handle");

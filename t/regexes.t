@@ -3,7 +3,7 @@
 
 # This test is specifically for $FUNC_RE defined in DBD::google::parser.
 
-use DBD::google::parser;
+use DBD::Google::parser;
 use Test::More;
 
 my @tests = qw(
@@ -17,7 +17,7 @@ my @tests = qw(
     html_escape(title)
     HTML::Entities->encode_entities(title)
 );
-my $func_re = $DBD::google::parser::FUNC_RE;
+my $func_re = $DBD::Google::parser::FUNC_RE;
 
 plan tests => scalar @tests;
 

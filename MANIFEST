@@ -1,19 +1,21 @@
 Changes
-MANIFEST
-MANIFEST.SKIP
+lib/DBD/Google.pm
+lib/DBD/Google/db.pm
+lib/DBD/Google/dr.pm
+lib/DBD/Google/GetInfo.pm
+lib/DBD/Google/parser.pm
+lib/DBD/Google/st.pm
+lib/SQL/Dialects/Google.pm
 Makefile.PL
+MANIFEST			This list of files
 README
 SIGNATURE
-lib/DBD/google.pm
-lib/DBD/google/GetInfo.pm
-lib/DBD/google/db.pm
-lib/DBD/google/dr.pm
-lib/DBD/google/parser.pm
-lib/DBD/google/st.pm
-lib/SQL/Dialects/Google.pm
 t/connect.t
 t/load.t
 t/parser.t
+t/pod.t
 t/regexes.t
 t/sample-key
+t/signature.t
 t/sth.t
+META.yml                                 Module meta-data (added by MakeMaker)

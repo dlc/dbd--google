@@ -13,9 +13,9 @@ my %opts = ("oe" => "utf-8",
             "safe" => 0,
             "filter" => 1);
 my $user = 'x' x 32;
-my $dbh = DBI->connect("dbi:google:", $user, undef, \%opts);
+my $dbh = DBI->connect("dbi:Google:", $user, undef, \%opts);
 
-ok(defined $dbh, "DBI->connect('dbi:google:', '$user') works");
+ok(defined $dbh, "DBI->connect('dbi:Google:', '$user') works");
 is($dbh->FETCH('driver_google_opts')->{'safe'}, 0, "safe => 0");
 is($dbh->FETCH('driver_google_opts')->{'filter'}, 1, "filter => 1");
 is($dbh->FETCH('driver_google_opts')->{'oe'}, 'utf-8', 'oe => utf-8');
@@ -27,5 +27,5 @@ ok($google, "Net::Google instance is retrievable via ".
 
 my $google_key = -d 't' ? catfile($Bin, 'sample-key')
                         : catfile($Bin, 't', 'sample-key');
-$dbh = DBI->connect("dbi:google:", $google_key);
-ok(defined $dbh, "DBI->connect('dbi:google:', '$google_key') works");
+$dbh = DBI->connect("dbi:Google:", $google_key);
+ok(defined $dbh, "DBI->connect('dbi:Google:', '$google_key') works");

@@ -1,0 +1,16 @@
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         DBD-Google
+version:      0.10
+version_from: 
+installdirs:  site
+requires:
+    DBI:                           1.39
+    HTML::Entities:                0
+    Net::Google:                   0.6
+    Symbol:                        0
+    Test::More:                    0
+    URI::Escape:                   0
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.21

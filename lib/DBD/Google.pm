@@ -1,18 +1,21 @@
-package DBD::google;
+package DBD::Google;
 
 # ----------------------------------------------------------------------
-# $Id: google.pm,v 1.6 2003/03/27 19:56:52 dlc Exp $
+# $Id: Google.pm,v 1.1 2004/02/04 17:27:45 dlc Exp $
 # ----------------------------------------------------------------------
 
 use strict;
-use vars qw($VERSION);
+use vars qw($VERSION $REVISION);
 use vars qw($err $errstr $state $drh);
 
 use DBI;
-use DBD::google::dr;
-use DBD::google::db;
-use DBD::google::st;
-use DBD::google::parser;
+use DBD::Google::dr;
+use DBD::Google::db;
+use DBD::Google::st;
+use DBD::Google::parser;
+
+$VERSION = "0.10";    # $Date: 2004/02/04 17:27:45 $
+$REVISION = sprintf "%d.%02d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
 
 # ----------------------------------------------------------------------
 # Standard DBI globals: $DBI::err, $DBI::errstr, etc
@@ -21,7 +24,6 @@ $err     = 0;
 $errstr  = "";
 $state   = "";
 $drh     = undef;
-$VERSION = 0.06;
 
 # ----------------------------------------------------------------------
 # Creates a new driver handle, which will be a singleton.
@@ -30,13 +32,14 @@ sub driver {
     unless ($drh) {
         my ($class, $attr) = @_;
         my %stuff = (
-            'Name'          => 'google',
-            'Version'       => $VERSION,
-            'Err'           => \$err,
-            'Errstr'        => \$errstr,
-            'State'         => \$state,
-            'Attribution'   => 'DBD::google - darren chamberlain <darren@cpan.org>',
-            'AutoCommit'    => 1, # to avoid errors
+            'Name'              => 'Google',
+            'Version'           => $VERSION,
+            'DriverRevision'    => $REVISION,
+            'Err'               => \$err,
+            'Errstr'            => \$errstr,
+            'State'             => \$state,
+            'Attribution'       => 'DBD::Google - darren chamberlain <darren@cpan.org>',
+            'AutoCommit'        => 1, # to avoid errors
         );
 
         $class = join "::", $class, "dr";
@@ -53,7 +56,7 @@ sub DESTROY { 1 }
 
 __END__
 
-Apparently, people like DBD::google:
+Apparently, people like DBD::Google:
 
     http://www.raelity.org/archives/2003/02/13#dbd_google
     http://blog.simon-cozens.org/blosxom.cgi/2003/Feb/13#6335
@@ -61,25 +64,26 @@ Apparently, people like DBD::google:
 
 =head1 NAME
 
-DBD::google - Treat Google as a datasource for DBI
+DBD::Google - Treat Google as a datasource for DBI
 
 =head1 SYNOPSIS
 
-    use DBI;
+  use DBI;
 
-    my $dbh = DBI->connect("dbi:google:", $KEY);
-    my $sth = $dbh->prepare(qq[
-        SELECT title, URL FROM google WHERE q = "perl"
-    ]);
+  my $dbh = DBI->connect("dbi:Google:", $KEY);
+  my $sth = $dbh->prepare(qq[
+      SELECT title, URL FROM google WHERE q = "perl"
+  ]);
 
-    while (my $r = $sth->fetchrow_hashref) {
-        ...
+  while (my $r = $sth->fetchrow_hashref) {
+      ...
 
 =head1 DESCRIPTION
 
-DBD::google allows you to use Google as a datasource; google can be
+C<DBD::Google> allows you to use Google as a datasource; Google can be
 queried using SQL I<SELECT> statements, and iterated over using
-standard DBI conventions.
+standard DBI
+conventions.
 
 WARNING:  This is still alpha-quality software.  It works for me, but
 that doesn't really mean anything.
@@ -91,7 +95,7 @@ Google?
 
 =head1 BASIC USAGE
 
-For the most part, use C<DBD::google> like you use any other DBD,
+For the most part, use C<DBD::Google> like you use any other DBD,
 except instead of going through the trouble of building and installing
 (or buying!) database software, and employing a DBA to manage your
 data, you can take advantage of Google's ability to do this for you.
@@ -99,23 +103,23 @@ Think of it as outsourcing your DBA, if you like.
 
 =head2 Connection Information
 
-The connection string should look like: C<dbi:google:> (DBI requires
+The connection string should look like: C<dbi:Google:> (DBI requires
 the trailing C<:>).
 
 Your Google API key should be specified in the username portion (the
 password is currently ignored; do whatever you want with it, but be
 warned that I might put that field to use some day):
 
-  my $dbh = DBI->connect("dbi:google:", "my key", undef, \%opts);
+  my $dbh = DBI->connect("dbi:Google:", "my key", undef, \%opts);
 
 Alternatively, you can specify a filename in the user portion; the
 first line of that file will be treated as the key:
 
-  my $dbh =DBI->connect("dbi:google:", 
+  my $dbh =DBI->connect("dbi:Google:", 
         File::Spec->catfile($ENV{HOME}, ".googlekey"))
 
 In addition to the standard DBI options, the fourth argument to
-connect can also include the following C<DBD::google> specific
+connect can also include the following C<DBD::Google> specific
 options, the full details of each of which can be found in
 L<Net::Google>:
 
@@ -167,8 +171,8 @@ table, called I<google>; this table has one queryable field, I<q>
 (just like the public web-based interface).  The available columns are
 currently dictated by the data available from the underlying
 transport, which is the Google SOAP API (see
-L<http://www.google.com/apis|http://www.google.com/apis>), as
-implemented by Aaron Straup Cope's C<Net::Google> module.
+L<http://www.google.com/apis>), as implemented by Aaron Straup Cope's
+C<Net::Google> module.
 
 The basic SQL syntax supported looks like:
 
@@ -177,8 +181,8 @@ The basic SQL syntax supported looks like:
 There is also an optional LIMIT clause, the syntax of which is similar
 to that of MySQL's LIMIT clause; it takes a pair: offset from 0,
 number of results.  In practice, Google returns 10 results at a time
-by default, so specifying a high LIMIT clause at the beginning might
-make sense for many queries.
+by default, so specifying a higher LIMIT clause at the beginning might
+make sense for some queries.
 
 The list of available fields in the I<google> table includes:
 
@@ -223,7 +227,7 @@ The column specifications can include aliases:
 
   SELECT directoryCategory as DC FROM google WHERE...
 
-C<DBD::google> supports functions of a few types:  native C<DBD::google>
+C<DBD::Google> supports functions of a few types:  native C<DBD::Google>
 functions, arbitrary functions or methods in the form Package::Function
 or Package->Method, and any Perl builtin that expects a single scalar and
 returns a single scalar (C<uc>, C<quotemeta>, C<oct>, etc).
@@ -237,7 +241,7 @@ These functions are used like you would expect:
     FROM google
    WHERE q = '$stuff'
 
-The native C<DBD::google> functions include:
+The native C<DBD::Google> functions include:
 
 =over 16
 
@@ -257,7 +261,7 @@ this function can be used to undo that damage.
 
 =back
 
-C<DBD::google>'s support for arbitrary functions is limited to fuctions
+C<DBD::Google>'s support for arbitrary functions is limited to fuctions
 or methods specified using a fully qualified Perl package identifier:
 
   SELECT title                          AS Title,
@@ -277,16 +281,63 @@ any type (there's only 1 "table", after all), sub-SELECTS (I can't even
 imagine of what use they would be here), and, actually, anything not
 explicitly mentioned above.
 
+=head2 Search Metadata
+
+The statement handle (C<$sth>) has a number of methods that can be
+called on it to return information about the query.  These methods are
+proxied directly to the contained C<Net::Google::Results> instance,
+and include the following:
+
+=over 16
+
+=item $sth->documentFiltering
+
+Returns 0 if false, 1 if true.
+
+=item $sth->searchComments
+
+Returns a string.
+
+=item $sth->estimateTotalResultsNumber
+
+Returns an integer.
+
+=item $sth->estimateIsExact
+
+Returns 0 if false, 1 if true.
+
+=item $sth->searchQuery
+
+Returns a string.
+
+=item $sth->startIndex
+
+Returns an integer.
+
+=item $sth->endIndex
+
+Returns an integer.
+
+=item $sth->searchTips
+
+Returns a string.
+
+=item $sth->searchTime
+
+Returns a float.
+
+=back
+
 =head1 INSTALLATION
 
-C<DBD::google> is pure perl, and has a few module requirements:
+C<DBD::Google> is pure perl, and has a few module requirements:
 
 =over 16
 
 =item Net::Google
 
-This is the heart of the module; C<DBD::google> is basically a
-DBI-compliant wrapper around C<Net::Google>.  As of C<DBD::google>
+This is the heart of the module; C<DBD::Google> is basically a
+DBI-compliant wrapper around C<Net::Google>.  As of C<DBD::Google>
 0.06, C<Net::Google> 0.60 or higher is required.
 
 =item HTML::Entities, URI::Escape
@@ -305,7 +356,7 @@ To install:
   $ make
   $ make test
   # make install
-  $ echo 'I love your module!' | mail darren@cpan.org -s "DBD::google"
+  $ echo 'I love your module!' | mail darren@cpan.org -s "DBD::Google"
 
 The last step is optional; the others are not.
 
@@ -336,7 +387,7 @@ formats the results nicely:
   # DBI/DBD options:
   my %opts = ( RaiseError => 1,  # Standard DBI options
                PrintError => 0,
-               lr => [ 'en' ],   # DBD::google options
+               lr => [ 'en' ],   # DBD::Google options
                oe => "utf-8",
                ie => "utf-8",
              );
@@ -345,7 +396,7 @@ formats the results nicely:
   my $keyfile = glob "~/.googlekey";
 
   # Get database handle
-  my $dbh = DBI->connect("dbi:google:", $keyfile, undef, \%opts);
+  my $dbh = DBI->connect("dbi:Google:", $keyfile, undef, \%opts);
 
   # Create Text::TabularDisplay instance, and set the columns
   my $table = Text::TabularDisplay->new;
@@ -360,58 +411,6 @@ formats the results nicely:
   $sth->finish;
 
   print $table->render;
-
-=head1 TODO
-
-These are listed in the order in which I'd like to implement them.
-
-=over 4
-
-=item Integration of search metadata
-
-There are several pieces of metadata that come back with searches;
-access to the via the statement handle ($sth) would be nice:
-
-  my $search_time = $sth->searchTime();
-  my $total = $sth->estimatedTotalResultsNumber();
-
-The metadata includes:
-
-=over 4
-
-=item o
-
-documentFiltering
-
-=item o
-
-searchTime
-
-=item o
-
-estimatedTotalResultsNumber
-
-=item o
-
-estimateIsExact
-
-=item o
-
-searchTips
-
-=item o
-
-searchTime
-
-=back
-
-These are described in L<Net::Google::Response>.
-
-=item DESCRIBE statement on the C<google> table
-
-It would be nice to provide a little introspection.
-
-=back
 
 =head1 CAVEATS, BUGS, IMPROVEMENTS, SUGGESTIONS, FOIBLES, ETC
 
@@ -433,7 +432,7 @@ useful, so I can refine the test suite (and the parser itself, of
 course).
 
 There are probably a few bugs, though I don't know of any.  Please
-report them via the DBD::google queue at
+report them via the DBD::Google queue at
 E<lt>http://rt.cpan.org/E<gt>.
 
 =head1 SEE ALSO 

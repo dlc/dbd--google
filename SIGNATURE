@@ -1,5 +1,5 @@
 This file contains message digests of all files listed in MANIFEST,
-signed via the Module::Signature module, version 0.21.
+signed via the Module::Signature module, version 0.38.
 
 To verify the content in this distribution, first make sure you have
 Module::Signature installed, then type:
@@ -14,28 +14,31 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 52cd042f78793c30fbab37c994dc933ad97222dc Changes
-SHA1 0718371e81cd131e7761d10ce4b85729f4186b51 MANIFEST
-SHA1 e317210c35f350e05e2a0b24dd03a32ed5de0633 MANIFEST.SKIP
-SHA1 701fb1ec1cc80ffd15f1a3480f3fe61699bf5759 Makefile.PL
+SHA1 a817cdea019d2e3371e63976eab8c8d1eeb4c208 Changes
+SHA1 22b08e804497f061440c8932f800265a6292f75a MANIFEST
+SHA1 8de147f5ea68bb6267a4d9ba083192d3bba23ee5 META.yml
+SHA1 373b34cc927a941a75f08419ee9369312bb01501 Makefile.PL
 SHA1 5671fa59b23ce36487d74d414e456122ac0f99dc README
-SHA1 e2e11cf4355a98dd9af6a5a663a630325b54a04b lib/DBD/google.pm
-SHA1 3364a81ed3424faf3bb43e370b11342aedb7d20a lib/DBD/google/GetInfo.pm
-SHA1 9460bc57d9a19c8c2291600e38ff7a6d7ba0e3ea lib/DBD/google/db.pm
-SHA1 86800429ff3272078de1535e3f7d23169e07e9d0 lib/DBD/google/dr.pm
-SHA1 a7f6feaba1f5e41b106cf45e4b9493024181c43f lib/DBD/google/parser.pm
-SHA1 4cdbe5b3f5e60ed027429deef8c4bb6860a178e0 lib/DBD/google/st.pm
-SHA1 9fca8edc43fdbbca8dfbc286038469e00b8361bc lib/SQL/Dialects/Google.pm
-SHA1 89c5120390c73cc0bcda1a4b48206e0b7e74006f t/connect.t
-SHA1 a1f7d0a4ddb10cb750938bc05e7a9c892f1438c5 t/load.t
-SHA1 7f2f2f778a77a856a5fba723d19112e8451184fe t/parser.t
-SHA1 90c3dd3651b6ae8fc9643251c100ebe4d9f07e80 t/regexes.t
+SHA1 5aa2496ce0021b53165e83c7149ae071c35f4806 lib/DBD/Google.pm
+SHA1 9304b258d1eb63246ce3624aea4cced2854452ab lib/DBD/Google/GetInfo.pm
+SHA1 c8593f418a52cd06062e5e82779f2091046cda22 lib/DBD/Google/db.pm
+SHA1 c07b912dad7508b485b262817ff9498638d09fa0 lib/DBD/Google/dr.pm
+SHA1 81473e223af34d56d9906f8ec5b51b48cb2400eb lib/DBD/Google/parser.pm
+SHA1 d062d7f6b7665e2d622b0d71060c39043e1b8c21 lib/DBD/Google/st.pm
+SHA1 517cc21b7519ae1f5df9b84652e228055327e4e7 lib/SQL/Dialects/Google.pm
+SHA1 c24ec42cbe889703e96b4d70208d2b1600363d09 t/connect.t
+SHA1 164cc06a213e1683b1687784e2546f2d50cfea05 t/load.t
+SHA1 c5f7c7e670ef2291ea3243cbf1e1eae78c2b4e9b t/parser.t
+SHA1 13cad91846a2fe9ebb6b1b86bc8aaded7b7a1751 t/pod.t
+SHA1 fdcf47a66668a5410ab9fbe92ac5dc034ed2eadb t/regexes.t
 SHA1 cc0d64f397d55673683e3606baff18461e3c8760 t/sample-key
-SHA1 a881348b07ea72b760fe9467cae1e55e8a86454c t/sth.t
+SHA1 f2ef34d69157884e7b0ff6ce689d327d12cdfc52 t/signature.t
+SHA1 f23011c315f51af0765d84a6af12ca7df52811e5 t/sth.t
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
+Version: GnuPG v1.2.4 (GNU/Linux)
+Comment: This message is digitally signed and can be verified for authenticity.
 
-iD8DBQE+eb2mzsinjrVhZaoRApJsAJwM1CRmw63yB6H5LpgL2/IU852FPwCgpKb2
-Z6WYKOUWApb/VmjF78mmijk=
-=Wc5h
+iD8DBQFAHsndzsinjrVhZaoRAnL8AJ0fUJdjSi7axKX3Ma+O4T/NbBU02QCeMe4w
+aWilN435Rw7SDU+0QWPuY6k=
+=8xLl
 -----END PGP SIGNATURE-----

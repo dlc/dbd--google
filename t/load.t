@@ -6,8 +6,8 @@ use Test::More;
 
 plan tests => 5;
 
-use_ok("DBD::google");
-use_ok("DBD::google::db");
-use_ok("DBD::google::dr");
-use_ok("DBD::google::parser");
-use_ok("DBD::google::st");
+use_ok("DBD::Google");
+use_ok("DBD::Google::db");
+use_ok("DBD::Google::dr");
+use_ok("DBD::Google::parser");
+use_ok("DBD::Google::st");
