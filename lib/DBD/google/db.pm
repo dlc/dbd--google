@@ -1,7 +1,7 @@
 package DBD::google::db;
 
 # ----------------------------------------------------------------------
-# $Id: db.pm,v 1.2 2003/02/20 12:46:01 dlc Exp $
+# $Id: db.pm,v 1.3 2003/03/14 21:55:46 dlc Exp $
 # ----------------------------------------------------------------------
 # The database handle (dbh)
 # ----------------------------------------------------------------------
@@ -13,15 +13,21 @@ use vars qw($VERSION $imp_data_size);
 use DBI;
 use DBD::google::parser;
 
-$VERSION = sprintf "%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
 $imp_data_size = 0;
 
 sub prepare {
     my ($dbh, $statement, @attr) = @_;
-    my ($sth, $parsed, $google, $search, $search_opts);
+    my ($sth, $parser, $parsed, $google,
+        $search, $search_opts);
 
     # Parse the SQL statement
-    $parsed = DBD::google::parser->parse($statement);
+    $parser = DBD::google::parser->new;
+    eval {
+        $parser->parse($statement)
+            or die $parser->errstr;
+        $parsed = $parser->structure;
+    };
 
     # Get the google instance and %attr
     $google = $dbh->FETCH('driver_google');
