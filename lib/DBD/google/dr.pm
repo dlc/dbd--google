@@ -1,7 +1,7 @@
 package DBD::google::dr;
 
 # ----------------------------------------------------------------------
-# $Id: dr.pm,v 1.2 2003/02/20 12:46:19 dlc Exp $
+# $Id: dr.pm,v 1.3 2003/03/11 13:59:24 dlc Exp $
 # ----------------------------------------------------------------------
 # This is the driver implementation.
 # DBI->connect defers to this class.
@@ -16,7 +16,7 @@ use DBI;
 use Net::Google;
 use Symbol qw(gensym);
 
-$VERSION = sprintf "%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
 $imp_data_size = 0;
 
 # ----------------------------------------------------------------------
@@ -40,10 +40,6 @@ sub connect {
         open $fh, $user or die "Can't open $user for reading: $!";
         chomp($user = <$fh>);
         close $fh or die "Can't close $user: $!";
-    }
-
-    if (length $user != 32) {
-        carp "'$user' doesn't look like a Google key to me; using it anyway...";
     }
 
     $dbh = DBI::_new_dbh($drh, {
