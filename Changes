@@ -12,8 +12,11 @@
   DBD::google::parser supports.
 
 * DBD::google::parser supports arbitrary perl functions on returned
-  columns by specifying the fully-qualified package name (functions
-  only, not methods (yet)).
+  columns.  There are four types of functions:  DBD::google builtins;
+  Perl builtins (any standard perl function that takes a single scalar
+  and returns a single scalar, e.g., uc, oct, and quotemeta); fully
+  qualified Package::Function names (e.g., Digest::MD5::md5_hex), and
+  fully qualified methods (URI->new).
 
 * Added DBD::google::GetInfo module, generated using
   DBI::DBD::Metadata.
