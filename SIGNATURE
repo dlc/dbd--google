@@ -14,17 +14,17 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 a817cdea019d2e3371e63976eab8c8d1eeb4c208 Changes
+SHA1 dc1ed510224df3cb5cf71f53ebd507d07aedb2ae Changes
 SHA1 22b08e804497f061440c8932f800265a6292f75a MANIFEST
 SHA1 8de147f5ea68bb6267a4d9ba083192d3bba23ee5 META.yml
 SHA1 373b34cc927a941a75f08419ee9369312bb01501 Makefile.PL
 SHA1 5671fa59b23ce36487d74d414e456122ac0f99dc README
-SHA1 5aa2496ce0021b53165e83c7149ae071c35f4806 lib/DBD/Google.pm
-SHA1 9304b258d1eb63246ce3624aea4cced2854452ab lib/DBD/Google/GetInfo.pm
-SHA1 c8593f418a52cd06062e5e82779f2091046cda22 lib/DBD/Google/db.pm
-SHA1 c07b912dad7508b485b262817ff9498638d09fa0 lib/DBD/Google/dr.pm
-SHA1 81473e223af34d56d9906f8ec5b51b48cb2400eb lib/DBD/Google/parser.pm
-SHA1 d062d7f6b7665e2d622b0d71060c39043e1b8c21 lib/DBD/Google/st.pm
+SHA1 bedaa0c2542c37f184691772f7ea252f235f4978 lib/DBD/Google.pm
+SHA1 d7753bc18bc554b5b204ef5f4aa2191a9eea8ed5 lib/DBD/Google/GetInfo.pm
+SHA1 57727ac46dc649396f2e98cc283560852c192f0a lib/DBD/Google/db.pm
+SHA1 f184fc89598e67e385a2dcf5b3d81420c3e3bb13 lib/DBD/Google/dr.pm
+SHA1 13cec829fa3593e14df33e8d2f2814fbdfd37aef lib/DBD/Google/parser.pm
+SHA1 6762d6e965f11d7ea2b40a542bd67117b546b59a lib/DBD/Google/st.pm
 SHA1 517cc21b7519ae1f5df9b84652e228055327e4e7 lib/SQL/Dialects/Google.pm
 SHA1 c24ec42cbe889703e96b4d70208d2b1600363d09 t/connect.t
 SHA1 164cc06a213e1683b1687784e2546f2d50cfea05 t/load.t
@@ -38,7 +38,7 @@ SHA1 f23011c315f51af0765d84a6af12ca7df52811e5 t/sth.t
 Version: GnuPG v1.2.4 (GNU/Linux)
 Comment: This message is digitally signed and can be verified for authenticity.
 
-iD8DBQFAHsndzsinjrVhZaoRAnL8AJ0fUJdjSi7axKX3Ma+O4T/NbBU02QCeMe4w
-aWilN435Rw7SDU+0QWPuY6k=
-=8xLl
+iD8DBQFAIZvezsinjrVhZaoRAms6AJ9sv/Fran3H/D8ORKnqds6wU+6+nQCgkTnt
+GDArpoBpZv0XmDunsAi5zDI=
+=kdmp
 -----END PGP SIGNATURE-----
