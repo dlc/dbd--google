@@ -3,6 +3,7 @@ lib/DBD/google/dr.pm
 lib/DBD/google/parser.pm
 lib/DBD/google.pm
 lib/DBD/google/st.pm
+lib/SQL/Dialects/Google.pm
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
