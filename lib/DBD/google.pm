@@ -1,7 +1,7 @@
 package DBD::google;
 
 # ----------------------------------------------------------------------
-# $Id: google.pm,v 1.5 2003/03/20 16:30:02 dlc Exp $
+# $Id: google.pm,v 1.6 2003/03/27 19:56:52 dlc Exp $
 # ----------------------------------------------------------------------
 
 use strict;
@@ -196,12 +196,12 @@ Returns the URL of the result, as a (non-HTML encoded!) string.
 
 Returns a snippet of the result.
 
-=item cachedSize
+=item cachedSize / cached_size
 
 Returns a string indicating the size of the cached version of the
 document.
 
-=item directoryTitle
+=item directoryTitle / directory_title
 
 Returns a string.
 
@@ -209,11 +209,11 @@ Returns a string.
 
 Returns a summary of the result.
 
-=item hostName
+=item hostName / host_name
 
 Returns the hostname of the result.
 
-=item directoryCategory
+=item directoryCategory / directory_category
 
 Returns the directory category of the result.
 
@@ -260,7 +260,12 @@ this function can be used to undo that damage.
 C<DBD::google>'s support for arbitrary functions is limited to fuctions
 or methods specified using a fully qualified Perl package identifier:
 
-  SELECT title, Digest::MD5::md5_hex(title) FROM google WHERE ...
+  SELECT title                          AS Title,
+         Digest::MD5::md5_hex(title)    AS Checksum,
+         URI->new(URL)                  AS URI,
+         LWP::Simple::get(URL)          AS content
+    FROM google
+   WHERE q = '$stuff'
 
 Functions and aliases can be combined:
 
@@ -401,17 +406,6 @@ searchTime
 =back
 
 These are described in L<Net::Google::Response>.
-
-=item Elements return objects, instead of strings
-
-It would be interesting for columns like URL and hostName to return
-C<URI> and C<Net::hostent> objects, respectively.
-
-On the other hand, this is definitely related to the previous item; the
-parser could be extended to accept function names in method format:
-
-  SELECT title, URI->new(URL), Net::hostent::gethost(hostName)
-  FROM google WHERE q = "perl"
 
 =item DESCRIBE statement on the C<google> table
 

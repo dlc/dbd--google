@@ -1,7 +1,7 @@
 package DBD::google::st;
 
 # ----------------------------------------------------------------------
-# $Id: st.pm,v 1.3 2003/03/20 16:30:02 dlc Exp $
+# $Id: st.pm,v 1.4 2003/03/27 19:56:56 dlc Exp $
 # ----------------------------------------------------------------------
 # DBD::google::st - Statement handle
 # ----------------------------------------------------------------------
@@ -32,7 +32,7 @@ sub execute {
     @columns = @{ $sth->{'Columns'} };
 
     # This is where fetchrow_hashref etc get their names from
-    $sth->{'NAME'} = [ map { $_->alias } @columns ];
+    $sth->{'NAME'} = [ map { $_->{'ALIAS'} } @columns ];
 
     # This executes the search
     $results = $search->results;
@@ -41,7 +41,7 @@ sub execute {
 
         for $column (@columns) {
             my ($name, $method, $value, $function);
-            $name = lc $column->name;
+            $name = lc $column->{'FIELD'};
 
             # These are in the same order as described
             # in Net::Google::Response
@@ -65,7 +65,7 @@ sub execute {
 
             $value = defined $method ? $result->$method() : "";
 
-            $function = $column->function;
+            $function = $column->{'FUNCTION'};
             eval { $value = &$function($search, $value); }
                 if defined $function;
 

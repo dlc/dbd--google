@@ -11,7 +11,7 @@ use vars qw($parsed);
 use DBD::google::parser;
 use Test::More;
 
-plan tests => 54;
+plan tests => 57;
 
 # Parse an SQL statement, and return the data we care about.
 sub p {
@@ -34,7 +34,7 @@ sub apply_function {
     my $c = $parsed->{'COLUMNS'}->[0]->{'FUNCTION'};
     is(ref($c),
         'CODE',
-        "$parsed->{'COLUMNS'}->[0]->{'FIELD'} => CODE ref");
+        "$parsed->{'COLUMNS'}->[0]->{'FUNCTION'} => CODE ref");
     if (ref($expected) eq 'CODE') {
         my $r = $c->(undef, @testdata);
         $expected->($r);
@@ -138,6 +138,18 @@ is($parsed->{'LIMIT'}->{'offset'},
 is($parsed->{'LIMIT'}->{'limit'},
     5,
     "\$parsed->limit->limit => 5");
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# Rename methodName to method_name, dynamically
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ok($parsed = p('SELECT directory_title FROM google'),
+    "Parsed statement");
+is(scalar @{ $parsed->{'COLUMNS'} },
+    1,
+    "Correct number of columns");
+is($parsed->{'COLUMNS'}->[0]->{'FIELD'},
+    "directory_title",
+    "directory_title => directoryTitle");
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Function tests

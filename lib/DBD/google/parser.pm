@@ -1,7 +1,7 @@
 package DBD::google::parser;
 
 # ----------------------------------------------------------------------
-# $Id: parser.pm,v 1.5 2003/03/20 16:30:02 dlc Exp $
+# $Id: parser.pm,v 1.6 2003/03/27 19:56:56 dlc Exp $
 # ----------------------------------------------------------------------
 # This package needs to subclass SQL::Parser, in order that the
 # functions defined can be used.  WIth SQL::Parser 1.005, the
@@ -38,6 +38,10 @@ my @default_columns = sort qw( title URL snippet summary
 my %allowed_columns = map { $_ => 1 }
                       map { $_, lc $_, uc $_ }
                       @default_columns;
+for my $dc (@default_columns) {
+    $dc =~ s/([A-Z])/_\l$1/g;
+    $allowed_columns{$dc} = 1;
+}
 
 # All functions are passed two items: the Net::Google::Search
 # instanace and the text to be fiddled with.
@@ -198,7 +202,7 @@ sub SELECT_CLAUSE {
                         else {
                             if ($type eq '::') {
                                 if (defined(my $g = \&{"$package\::$func"})) {
-                                    $f = sub { shift; $g->(@_) };
+                                    $f = sub { shift; &$g(@_) };
                                 } else {
                                     $$errstr = "Can't load $package\::$func";
                                 }
