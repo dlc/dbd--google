@@ -1,7 +1,7 @@
 package DBD::google;
 
 # ----------------------------------------------------------------------
-# $Id: google.pm,v 1.1 2003/02/14 20:30:12 dlc Exp $
+# $Id: google.pm,v 1.2 2003/02/20 12:45:14 dlc Exp $
 # ----------------------------------------------------------------------
 
 use strict;
@@ -13,7 +13,6 @@ use DBD::google::dr;
 use DBD::google::db;
 use DBD::google::st;
 use DBD::google::parser;
-use Data::Dumper;
 
 # ----------------------------------------------------------------------
 # Standard DBI globals: $DBI::err, $DBI::errstr, etc
@@ -22,7 +21,7 @@ $err     = 0;
 $errstr  = "";
 $state   = "";
 $drh     = undef;
-$VERSION = sprintf "%d.%02d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
 
 # ----------------------------------------------------------------------
 # Creates a new driver handle, which will be a singleton.
@@ -48,6 +47,7 @@ sub driver {
     return $drh;
 }
 
+sub DESTROY { 1 }
 
 1;
 
@@ -313,7 +313,7 @@ formats the results nicely:
 
   # Create Text::TabularDisplay instance, and set the columns
   my $table = Text::TabularDisplay->new;
-  $table->columns("Title", "URL, "Hostname");
+  $table->columns("Title", "URL", "Hostname");
 
   # Do the query
   my $sth = $dbh->prepare($sql);
