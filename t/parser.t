@@ -1,13 +1,12 @@
 #!/usr/bin/perl
 # vim: set ft=perl:
 
-use Data::Dumper;
 use DBD::google::parser;
 use Test::More;
 
 sub p { DBD::google::parser->parse(@_) }
 
-plan tests => 28;
+plan tests => 30;
 my $parsed;
 
 ok($parsed = p("SELECT * FROM google"), "Parsed statement");
@@ -57,3 +56,7 @@ is($parsed->columns->[0]->function->("<b>hello</b>"), "hello", "striphtml works 
 ok($parsed = p("select * from google limit 5"), "Parsed statement");
 is($parsed->limit->[0], 0, "\$limit[0] => 0");
 is($parsed->limit->[1], 5, "\$limit[1] => 5");
+
+ok($parsed = p('select Digest::MD5::md5_hex(title) from google'),
+    "Parsed statement");
+is(ref($parsed->columns->[0]->function), 'CODE', "Random function OK");
