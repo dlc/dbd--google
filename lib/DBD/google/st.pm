@@ -1,7 +1,7 @@
 package DBD::google::st;
 
 # ----------------------------------------------------------------------
-# $Id: st.pm,v 1.1 2003/02/14 20:30:12 dlc Exp $
+# $Id: st.pm,v 1.2 2003/02/20 12:49:02 dlc Exp $
 # ----------------------------------------------------------------------
 # DBD::google::st - Statement handle
 # ----------------------------------------------------------------------
@@ -11,9 +11,8 @@ use base qw(DBD::_::st);
 use vars qw($VERSION $imp_data_size);
 
 use DBI;
-use DBD::google::parser;
 
-$VERSION = sprintf "%d.%02d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
 $imp_data_size = 0;
 
 # ----------------------------------------------------------------------
@@ -64,11 +63,13 @@ sub execute {
                 $method = 'directoryCategory';
             }
 
-            $value = $method ? $result->$method() : "";
+            $value = defined $method ? $result->$method() : "";
 
             $function = $column->function;
-            eval { $value = &$function($value); };
-            push @this, ($@ or $value);
+            eval { $value = &$function($value); }
+                if defined $function;
+
+            push @this, ($@ or $value or "");
         }
 
         push @data, \@this;
@@ -111,5 +112,7 @@ sub totalrows {
 sub table_info { return "google" }
 
 1;
+
+sub DESTROY { 1 }
 
 __END__
