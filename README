@@ -60,7 +60,7 @@ BASIC USAGE
 
     lr              Something to do with language. Arrayref.
 
-    debug           Should "Net::Google" be put into debug mode or not.
+    debug           Should "Net::Google" be put into debug mode or not?
                     Boolean.
 
   Supported SQL Syntax and Random Notes Thereon
@@ -108,11 +108,11 @@ BASIC USAGE
 
       SELECT directoryCategory as DC FROM google WHERE...
 
-    Finally, there are a few function that can be called on fields:
+    Finally, "DBD::google" supports functions:
 
       SELECT title, html_encode(url) FROM google WHERE q = '$stuff'
 
-    The available functions include:
+    There are several available functions available by default:
 
     uri_escape      This comes from the "URI::Escape" module.
 
@@ -123,14 +123,19 @@ BASIC USAGE
                     highlighted with <b> tags by Google; this function can
                     be used to undo that damage.
 
-    Functions an aliases can be combined:
+    Finally, "DBD::google" also supports arbitrary functions, specified
+    using a fully qualified Perl package identifier:
+
+      SELECT title, Digest::MD5::md5_hex(title) FROM google WHERE ...
+
+    Functions and aliases can be combined:
 
       SELECT html_strip(snippet) as stripped_snippet FROM google...
 
     Unsupported SQL includes ORDER BY clauses (Google does this, and
     provides no interface to modify it), HAVING clauses, JOINs of any type
-    (there's only 1 "table" after all), sub-SELECTS (I can't even imagine of
-    what use they would be here), and, actually, anything not explicitly
+    (there's only 1 "table", after all), sub-SELECTS (I can't even imagine
+    of what use they would be here), and, actually, anything not explicitly
     mentioned above.
 
 INSTALLATION
@@ -194,7 +199,7 @@ EXAMPLES
 
       # Create Text::TabularDisplay instance, and set the columns
       my $table = Text::TabularDisplay->new;
-      $table->columns("Title", "URL, "Hostname");
+      $table->columns("Title", "URL", "Hostname");
 
       # Do the query
       my $sth = $dbh->prepare($sql);
