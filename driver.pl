@@ -1,16 +1,12 @@
 #!/usr/bin/perl
 
 use strict;
-use File::Slurp qw(read_file);
 use File::Spec::Functions qw(catfile);
-
-my $KEY = read_file(catfile($ENV{HOME}, ".googlerc"));
-chomp $KEY;
 
 use DBI;
 use Data::Dumper;
 
-my $dbh = DBI->connect("dbi:google:", $KEY)
+my $dbh = DBI->connect("dbi:google:", catfile($ENV{HOME}, ".googlerc"))
     or die $DBI::err;
 
 my $sql = "
