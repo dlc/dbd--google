@@ -1,7 +1,7 @@
 package DBD::google::db;
 
 # ----------------------------------------------------------------------
-# $Id: db.pm,v 1.1 2003/02/14 20:30:12 dlc Exp $
+# $Id: db.pm,v 1.2 2003/02/20 12:46:01 dlc Exp $
 # ----------------------------------------------------------------------
 # The database handle (dbh)
 # ----------------------------------------------------------------------
@@ -11,8 +11,9 @@ use base qw(DBD::_::db);
 use vars qw($VERSION $imp_data_size);
 
 use DBI;
+use DBD::google::parser;
 
-$VERSION = sprintf "%d.%02d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
 $imp_data_size = 0;
 
 sub prepare {
