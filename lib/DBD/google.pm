@@ -1,7 +1,7 @@
 package DBD::google;
 
 # ----------------------------------------------------------------------
-# $Id: google.pm,v 1.2 2003/02/20 12:45:14 dlc Exp $
+# $Id: google.pm,v 1.3 2003/03/11 13:58:50 dlc Exp $
 # ----------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ $err     = 0;
 $errstr  = "";
 $state   = "";
 $drh     = undef;
-$VERSION = sprintf "%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
 
 # ----------------------------------------------------------------------
 # Creates a new driver handle, which will be a singleton.
@@ -57,6 +57,7 @@ Apparently, people like DBD::google:
 
     http://www.raelity.org/archives/2003/02/13#dbd_google
     http://blog.simon-cozens.org/blosxom.cgi/2003/Feb/13#6335
+    jeremy.zowodny.com
 
 =head1 NAME
 
@@ -67,7 +68,9 @@ DBD::google - Treat Google as a datasource for DBI
     use DBI;
 
     my $dbh = DBI->connect("dbi:google:", $KEY);
-    my $sth = $dbh->prepare(qq[ SELECT title, URL FROM google WHERE q = "perl" ]);
+    my $sth = $dbh->prepare(qq[
+        SELECT title, URL FROM google WHERE q = "perl"
+    ]);
 
     while (my $r = $sth->fetchrow_hashref) {
         ...
@@ -96,8 +99,8 @@ Think of it as outsourcing your DBA, if you like.
 
 =head2 Connection Information
 
-The connection string should look like: C<dbi:google:>.  DBI requires
-the trailing C<:>.
+The connection string should look like: C<dbi:google:> (DBI requires
+the trailing C<:>).
 
 Your Google API key should be specified in the username portion (the
 password is currently ignored; do whatever you want with it, but be
@@ -140,7 +143,7 @@ Something to do with language.  Arrayref.
 
 =item debug
 
-Should C<Net::Google> be put into debug mode or not.  Boolean.
+Should C<Net::Google> be put into debug mode or not?  Boolean.
 
 =back
 
@@ -208,11 +211,11 @@ The column specifications can include aliases:
 
   SELECT directoryCategory as DC FROM google WHERE...
 
-Finally, there are a few function that can be called on fields:
+Finally, C<DBD::google> supports functions:
 
   SELECT title, html_encode(url) FROM google WHERE q = '$stuff'
 
-The available functions include:
+There are several available functions available by default:
 
 =over 16
 
@@ -232,13 +235,18 @@ this function can be used to undo that damage.
 
 =back
 
-Functions an aliases can be combined:
+Finally, C<DBD::google> also supports arbitrary functions, specified
+using a fully qualified Perl package identifier:
+
+  SELECT title, Digest::MD5::md5_hex(title) FROM google WHERE ...
+
+Functions and aliases can be combined:
 
   SELECT html_strip(snippet) as stripped_snippet FROM google...
 
 Unsupported SQL includes ORDER BY clauses (Google does this, and
 provides no interface to modify it), HAVING clauses, JOINs of
-any type (there's only 1 "table" after all), sub-SELECTS (I can't even
+any type (there's only 1 "table", after all), sub-SELECTS (I can't even
 imagine of what use they would be here), and, actually, anything not
 explicitly mentioned above.
 
