@@ -1,7 +1,7 @@
 package DBD::google::dr;
 
 # ----------------------------------------------------------------------
-# $Id: dr.pm,v 1.1 2003/02/14 20:30:12 dlc Exp $
+# $Id: dr.pm,v 1.2 2003/02/20 12:46:19 dlc Exp $
 # ----------------------------------------------------------------------
 # This is the driver implementation.
 # DBI->connect defers to this class.
@@ -11,11 +11,12 @@ use strict;
 use base qw(DBD::_::dr);
 use vars qw($VERSION $imp_data_size);
 
+use Carp qw(carp croak);
 use DBI;
 use Net::Google;
-use Symbol ();
+use Symbol qw(gensym);
 
-$VERSION = sprintf "%d.%02d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
 $imp_data_size = 0;
 
 # ----------------------------------------------------------------------
@@ -33,16 +34,16 @@ sub connect {
     my ($drh, $dbname, $user, $pass, $attr) = @_;
     my ($dbh, $google, %google_opts);
 
-    die "No Google API key specified\n" unless defined $user;
+    croak "No Google API key specified\n" unless defined $user;
     if (-e $user) {
-        my $fh = Symbol::gensym;
+        my $fh = gensym;
         open $fh, $user or die "Can't open $user for reading: $!";
         chomp($user = <$fh>);
         close $fh or die "Can't close $user: $!";
     }
 
     if (length $user != 32) {
-        warn "'$user' doesn't look like a Google key to me; using it anyway...";
+        carp "'$user' doesn't look like a Google key to me; using it anyway...";
     }
 
     $dbh = DBI::_new_dbh($drh, {
@@ -62,8 +63,8 @@ sub connect {
     }
 
     # Create a Net::Google instance
-    $google = Net::Google->new(key => $user,
-                               debug => delete $attr->{'debug'});
+    $google = Net::Google->new(key   => $user,
+                               debug => $google_opts{'debug'} || 0);
 
     $dbh->STORE('driver_google' => $google);
     $dbh->STORE('driver_google_opts' => \%google_opts);
@@ -71,9 +72,7 @@ sub connect {
     return $dbh;
 }
 
-sub disconnect_all {
-    return 1;   # Nothing to do
-}
+sub disconnect_all { 1 }
 
 sub data_sources { return "google" }
 
