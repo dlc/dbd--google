@@ -1,7 +1,7 @@
 package DBD::google;
 
 # ----------------------------------------------------------------------
-# $Id: google.pm,v 1.3 2003/03/11 13:58:50 dlc Exp $
+# $Id: google.pm,v 1.4 2003/03/18 15:40:57 dlc Exp $
 # ----------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ $err     = 0;
 $errstr  = "";
 $state   = "";
 $drh     = undef;
-$VERSION = sprintf "%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+$VERSION = 1.03;
 
 # ----------------------------------------------------------------------
 # Creates a new driver handle, which will be a singleton.
@@ -121,31 +121,43 @@ L<Net::Google>:
 
 =over 16
 
-=item ie
+=item key
 
-Input Encoding.  String, e.g., "utf-8".
-
-=item oe
-
-Output Encoding.  String, e.g., "utf-8".
-
-=item safe
-
-Should safe mode be on.  Boolean.
-
-=item filter
-
-Should results be filtered.  Boolean.
+The Google API key can be specified here, if desired.
 
 =item lr
 
-Something to do with language.  Arrayref.
+Language restrictions.  String or array reference.
+
+=item ie
+
+Input Encoding.  String or array reference.
+
+=item oe
+
+Output Encoding.  String or array reference.
+
+=item safe
+
+Should safe mode be on?  Boolean.
+
+=item filter
+
+Should results be filtered?  Boolean.
+
+=item http_proxy
+
+A URL for proxying HTTP requests.
 
 =item debug
 
-Should C<Net::Google> be put into debug mode or not?  Boolean.
+Should C<Net::Google> be put into debug mode or not?  Boolean or code ref
+(see L<Net::Google>).
 
 =back
+
+All of these parameters are passed to the C<Net::Google> instance's
+C<search> method.
 
 =head2 Supported SQL Syntax and Random Notes Thereon
 
