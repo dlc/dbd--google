@@ -1,0 +1,39 @@
+This file contains message digests of all files listed in MANIFEST,
+signed via the Module::Signature module, version 0.21.
+
+To verify the content in this distribution, first make sure you have
+Module::Signature installed, then type:
+
+    % cpansign -v
+
+It would check each file's integrity, as well as the signature's
+validity.  If "==> Signature verified OK! <==" is not displayed,
+the distribution may already have been compromised, and you should
+not run its Makefile.PL or Build.PL.
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+SHA1 2600778cd86e4548c278bdb0f5a540b4b5a8b8fe MANIFEST
+SHA1 e317210c35f350e05e2a0b24dd03a32ed5de0633 MANIFEST.SKIP
+SHA1 77d3d4ed369060c6a272c3144032e30f570385b5 Makefile.PL
+SHA1 78d51b98ff767289f9eb56b7016c120e56bbb765 README
+SHA1 e1fd304cbb59ef42767494add247f9ad05d6346b lib/DBD/google.pm
+SHA1 3112bd29788d4396553d35d1500844c75c4664ee lib/DBD/google/db.pm
+SHA1 e929b70e95135255eae21e4d578f00c0f7179908 lib/DBD/google/dr.pm
+SHA1 fc13975d855534081f1c20ab77996c7e848072a2 lib/DBD/google/parser.pm
+SHA1 e79b23d16787539baa9fe7a561cb0c70d426b18d lib/DBD/google/st.pm
+SHA1 47a53b1d3bf632748a0560ec36522dab0059b29a lib/SQL/Dialects/Google.pm
+SHA1 89c5120390c73cc0bcda1a4b48206e0b7e74006f t/connect.t
+SHA1 a1f7d0a4ddb10cb750938bc05e7a9c892f1438c5 t/load.t
+SHA1 495d8fe325500e5056213a46db76df90f995f1ad t/parser.t
+SHA1 b26fdafa15d49b12bbd11ef26d5239473d712009 t/regexes.t
+SHA1 cc0d64f397d55673683e3606baff18461e3c8760 t/sample-key
+SHA1 a881348b07ea72b760fe9467cae1e55e8a86454c t/sth.t
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+
+iD8DBQE+ck1bzsinjrVhZaoRAp6YAKChYPfOlhwjbmUJcqcph5FaOa/RTgCgmv2K
+VlILmEKKrKTz+eOAcm6nSLw=
+=syW0
+-----END PGP SIGNATURE-----
