@@ -8,7 +8,7 @@ my %PREREQ_PM = (
     'Class::Struct'  => 0,
     'DBI'            => 0,
     'HTML::Entities' => 0,
-    'Net::Google'    => 0,
+    'Net::Google'    => 0.60,
     'Symbol'         => 0,
     'URI::Escape'    => 0,
 );
