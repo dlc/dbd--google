@@ -1,0 +1,32 @@
+# ======================================================================
+#                        --- DBD::google ---
+# ======================================================================
+
+# ----------------------------------------------------------------------
+# Version 0.06                                                      ????
+# ----------------------------------------------------------------------
+
+* Ditched custom SQL parser for SQL::Parser subclass, thanks to
+  prompting from Tim Bunce and Jeff Zucker.  Includes
+  SQL::Dialects::Google, which describes the subset of SQL that
+  DBD::google::parser supports.
+
+* DBD::google::parser supports arbitrary perl functions on returned
+  columns by specifying the fully-qualified package name (functions
+  only, not methods (yet)).
+
+* Added DBD::google::GetInfo module, generated using
+  DBI::DBD::Metadata.
+
+* Added http_proxy support via Net::Google; consequently, minimum
+  Net::Google version bounced up to 0.60.
+
+* Added SIGNATURE file (from Module::Signature).
+
+# ----------------------------------------------------------------------
+# Version 0.05                                         February 11, 2003 
+# ----------------------------------------------------------------------
+
+* Initial CPAN release
+
+# vim: set tw=70 ts=2 sw=2 fo=trcqo2n:
