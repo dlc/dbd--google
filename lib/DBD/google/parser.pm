@@ -1,18 +1,29 @@
 package DBD::google::parser;
 
 # ----------------------------------------------------------------------
-# $Id: parser.pm,v 1.2 2003/02/20 12:50:09 dlc Exp $
+# $Id: parser.pm,v 1.3 2003/03/11 14:01:45 dlc Exp $
 # ----------------------------------------------------------------------
 
+# This package needs to subclass SQL::Parser, in order that the
+# functions defined can be used.  WIth SQL::Parser 1.005, the
+# SELECT_CLAUSE method needs to be overridden.
+#
+# Jeff Zucker tells me that SQL::Parser 1.006 is coming out
+# soon, and that it will support more functions and such.  There
+# might need to be some logic in here to ensure that an incompatible
+# version of SQL::Parser is not being used.
+
 use strict;
+use base qw(SQL::Parser);
 use vars qw($VERSION $FIELD_RE $FUNC_RE);
 
 use Carp qw(carp);
 use File::Spec::Functions qw(catfile);
 use HTML::Entities qw(encode_entities);
+use SQL::Parser;
 use URI::Escape qw(uri_escape);
 
-$VERSION = sprintf "%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
 
 # XXX $FUNC_RE needs to catch methods as well as functions.  Currently
 # catches things like Digest::MD5::md5_hex(title) but will miss methods
@@ -21,7 +32,7 @@ $VERSION = sprintf "%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
 $FIELD_RE = '[a-zA-Z][a-zA-Z0-9_]';
 $FUNC_RE = qr/$FIELD_RE*(?:::$FIELD_RE*)*/;
 #my $FUNC_RE = qr/$FIELD_RE*(?:::$FIELD_RE*)*(?:[-]>$FIELD_RE*)?/; # methods?
-   $FIELD_RE = qr/$FIELD_RE*/;
+$FIELD_RE = qr/$FIELD_RE*/;
 my @default_columns = sort qw( title URL snippet summary
                                cachedSize directoryTitle
                                hostName directoryCategory
@@ -37,44 +48,64 @@ my %functions = (
 $functions{''} = $functions{'default'};
 
 # ----------------------------------------------------------------------
-# parse($sql)
+# new(@stuff)
+# 
+# Override SQL::Parser's new method, but only so that default values
+# can be used.
+# ----------------------------------------------------------------------
+sub new { return shift->SUPER::new("Google", @_) }
+
+# ----------------------------------------------------------------------
+# SELECT_CLAUSE($sql)
 #
-# Parses $sql into a data structure:
-#   {
-#       'columns' => [ qw( column names ) ],
-#       'tables' => [ qw( table names  ) ],
-#       'where' => "search terms",
-#       'limit' => [ qw( offset limit ) ],
-#   }
+# Parses the SELECT portion of $sql, which contains only the pieces 
+# between SELECT and WHERE.  Understands the following syntax:
+#
+#   field
+#
+#   field AS alias
+#
+#   field AS "alias"
+#
+#   function(field)
+#
+#   function(field) AS alias
+#
+#   function(field) AS "alias"
+#
+#   package::function(field)
+#
+#   package::function(field) AS alias
+#
+#   package::function(field) AS "alias"
+#
+# Will (heopfully) soon understand:
+#
+#   package->method(field)
+#
+#   package->method(field) AS alias
+#
+#   package->method(field) AS "alias"
+#
+# Currently fails on:
+#
+#   function(field, args)
 #
 # ----------------------------------------------------------------------
-sub parse {
-    my ($class, $sql) = @_;
+sub SELECT_CLAUSE {
+    my ($self, $sql) = @_;
+    #warn "Got: \$sql => '$sql'\n";
     my ($columns, $limit, @columns, @limit, $where, $parsed);
 
-    $sql =~ /^\s*  select
-              \s+  (.*?)
-              \s+  from
-              \s+  google
-              (?:
-                \s+  where
-                \s+  q \s* = \s*
-                    (['"]) (.*?) \2
-              )?
-              \s* 
-              (?:
-                limit
-                \s+(.*?)
-              )?
-              \s*$
-            /xism;
-
-    $columns = $1 || "*";
-    $where = $3 || "";
-    $limit = $4 || "";
+    # Internal data structures, given shorter names
+    my $column_names =  $self->{'struct'}->{'column_names'}     = [ ];
+    my $ORG_NAME     =  $self->{'struct'}->{'ORG_NAME'}         = { };
+    my $functions    =  $self->{'struct'}->{'column_functions'} = { };
+    my $aliases      =  $self->{'struct'}->{'column_aliases'}   = { };
+    my $errstr       = \$self->{'struct'}->{'errstr'};
 
     # columns
-    while ($columns =~ /\G
+    while ($sql =~ /\G
 
                         # Field name, including possible function
                         (?:
@@ -102,25 +133,30 @@ sub parse {
         my $alias = $5 || "";
         my $function = $1 || "";
 
+        #warn "\$function => '$function'\n\$alias => '$alias'\n";
+
         if (defined $3) {
-            push @columns,
-                map { 
-                    Column(name     => lc($_),
-                           alias    => ($alias || $_),
-                           original => $_
-                    )
-                } @default_columns;
+            # SELECT * -> expanded to all column names
+            my $df = $functions{'default'};
+            push  @$column_names,                    @default_columns;
+            %$ORG_NAME     = map { (uc($_) => $_) }  @default_columns;
+            %$functions    = map { (uc($_) => $df) } @default_columns;
+            %$aliases      = map { (uc($_) => $_) }  @default_columns;
         }
         elsif ($function) {
+            # SELECT foo(bar)
             my $original = $function;
             $original =~ /($FUNC_RE)\s*\((.*?)\)/;
 
+            # XXX $n here might contains arguments; needs to be
+            # passed to String::Shellquote to extract tokens
             my ($f, $n) = ($1, $2);
             $n =~ s/(^\s*|\s*$)//g;
+            $f = "" unless defined $f;
 
             unless ($allowed_columns{$n}) {
-                carp "Unknown column name '$n'\n";
-                next;
+                $$errstr = "Unknown column name '$n'";
+                return;
             }
 
             if (defined $functions{$f}) {
@@ -144,14 +180,11 @@ sub parse {
                 #   SELECT URI->new(URL) FROM google ...
                 #
                 my ($package, $func) = $f =~ /(.*)::(.*)/;
-                $package = catfile(split '::', $package);
-                $package .= ".pm";
-                print STDERR "\$package => '$package', \$func => '$func'";
 
                 eval "use $package;";
                 if ($@) {
-                    carp "Can't require $package: $@";
-                    $f = $functions{'default'}
+                    $$errstr = $@;
+                    return;
                 }
                 else {
                     if (defined &{"$package\::$func"}) {
@@ -162,6 +195,13 @@ sub parse {
                     }
                 }
             }
+            elsif ($f) {
+                # Function in the SQL, but not one we've defined, e.g.:
+                #
+                #   SELECT lala(title) FROM google
+                $$errstr = "No such function $f";
+                return;
+            }
             else {
                 # No function:
                 #
@@ -169,57 +209,26 @@ sub parse {
                 $f = $functions{'default'};
             }
 
-            push @columns,
-                Column(function => $f,
-                       name     => lc($n),
-                       alias    => ($alias || $original),
-                       original => $original
-                );
+            push @$column_names, $n;
+            $ORG_NAME->{  uc($n) } = $n;
+            $functions->{ uc($n) } = $f;
+            $aliases->{   uc($n) } = $alias ? $alias : $n;
         }
         elsif (defined $2) {
-            my $name = lc($2);
-            if ($allowed_columns{$name}) {
-                push @columns,
-                    Column(name     => $name,
-                           alias    => ($alias || $2),
-                           original => $2
-                    );
+            my $n = lc($2);
+            if ($allowed_columns{$n}) {
+                push @$column_names, $n;
+                $ORG_NAME->{  uc($n) } = $n;
+                $functions->{ uc($n) } = $functions{'default'};
+                $aliases->{   uc($n) } = $alias ? $alias : $n;
             } else {
-                carp "Unknown column name '$2'\n";
-                next;
+                $$errstr = "Unknown column name '$2'";
+                return;
             }
         }
     }
-    
 
-    # LIMIT is in the form "offset, limit", like mysql
-    @limit = split /,\s*/, $limit, 2;
-    if (@limit == 0) {
-        @limit = (0, 10);
-    }
-    elsif (@limit == 1) {
-        @limit = (0, $limit[0])
-    }
-
-    $parsed = DBD::google::Parsed::SQL->new;
-    $parsed->columns(\@columns);
-    $parsed->limit(\@limit);
-    $parsed->where($where);
-
-    return $parsed;
-}
-
-# ----------------------------------------------------------------------
-# Column(%args)
-#
-# Python-like Column() constructor.  Simpler than using the
-# full class name all over the place.
-# ----------------------------------------------------------------------
-sub Column {
-    return DBD::google::Parsed::Column->new->init(
-        function => $functions{'default'},
-        @_
-    );
+    1;
 }
 
 # ----------------------------------------------------------------------
@@ -234,52 +243,30 @@ sub striphtml {
     return $text;
 }
 
-# ----------------------------------------------------------------------
-# This internal package defines a cute little class to encapsulate
-# a column.
-# ----------------------------------------------------------------------
-package DBD::google::Parsed::Column;
-
-use Class::Struct;
-
-struct qw( original $
-           name     $
-           alias    $
-           function $
-         );
-
-sub init {
-    my $self = shift;
-
-    while (@_) {
-        my ($n, $v) = splice @_, 0, 2;
-        if (my $sub = $self->can($n)) {
-            $self->$sub($v);
-        }
-    }
-
-    return $self;
-}
-
-# ----------------------------------------------------------------------
-# This internal package represents a parsed SQL statement.
-# ----------------------------------------------------------------------
-package DBD::google::Parsed::SQL;
-
-use Class::Struct;
-
-struct qw( columns $
-           where   $
-           limit   $
-         );
-
-sub end {
-    my $self = shift;
-    return $self->start + $self->limit->[1];
-}
-
-sub start {
-    return shift->limit->[0];
-}
-
 1;
+
+__END__
+
+NOTES
+
+Tim Buunce suggested count(*) as a way to get the total number of search results.
+
+Data structure of SQL::Parser instance after parsing looks like:
+
+                 'struct' => {
+                               'org_table_names' => [
+                                                      'google'
+                                                    ],
+                               'column_names' => [
+                                                   '*'
+                                                 ],
+                               'table_alias' => {},
+                               'command' => 'SELECT',
+                               'table_names' => [
+                                                  'GOOGLE'
+                                                ],
+                               'org_col_names' => [
+                                                    '*'
+                                                  ]
+                             },
+
