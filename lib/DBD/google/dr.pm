@@ -1,7 +1,7 @@
 package DBD::google::dr;
 
 # ----------------------------------------------------------------------
-# $Id: dr.pm,v 1.3 2003/03/11 13:59:24 dlc Exp $
+# $Id: dr.pm,v 1.4 2003/03/18 15:41:28 dlc Exp $
 # ----------------------------------------------------------------------
 # This is the driver implementation.
 # DBI->connect defers to this class.
@@ -16,8 +16,11 @@ use DBI;
 use Net::Google;
 use Symbol qw(gensym);
 
-$VERSION = sprintf "%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%02d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
 $imp_data_size = 0;
+
+# These are valid Net::Google::Search options
+my @valid_google_opts = qw(key lr ie oe safe filter http_proxy debug);
 
 # ----------------------------------------------------------------------
 # connect($dsn, $user, $pass, \%attrs);
@@ -27,14 +30,20 @@ $imp_data_size = 0;
 #   my %opts = ("filter" => 0, "debug" => 1);
 #   my $dbh = DBI->connect("dbi:google:", $KEY, undef, \%opts);
 #
-# Username must be the google API key, password is ignored, and can be
-# anything, and the options hash is passed to Net::Google.
+# Username must be the google API key, password is ignored and can be
+# anything, and valid options in the %attr hash are passed to Net::Google.
 # ----------------------------------------------------------------------
 sub connect {
     my ($drh, $dbname, $user, $pass, $attr) = @_;
-    my ($dbh, $google, %google_opts);
+    my ($dbh, $google, %google_opts, @create_opts);
 
-    croak "No Google API key specified\n" unless defined $user;
+    # Issue a warning, rather than croak, because the user can
+    # specify a key in %attr
+    # carp "No Google API key specified\n" unless defined $user;
+    $user = '' unless defined $user && $user;
+
+    # If the user sends a keyfile as $user, open it and treat
+    # the first line as the key
     if (-e $user) {
         my $fh = gensym;
         open $fh, $user or die "Can't open $user for reading: $!";
@@ -51,16 +60,26 @@ sub connect {
 
     # Get options from %attr.  These will be passed 
     # to $google->search.
-    for my $google_opt (qw(ie oe safe filter lr debug)) {
+    for my $google_opt (@valid_google_opts) {
         if (defined $attr->{ $google_opt }) {
             $google_opts{ $google_opt } =
                 delete $attr->{ $google_opt };
         }
     }
 
-    # Create a Net::Google instance
-    $google = Net::Google->new(key   => $user,
-                               debug => $google_opts{'debug'} || 0);
+    # Create a list of name => value pairs to pass to Net::Google
+    # constructor.
+    push @create_opts, "key" => $user || $google_opts{'key'} || '';
+
+    push @create_opts, 'debug' => $google_opts{'debug'}
+        if defined $google_opts{'debug'};
+
+    push @create_opts, 'http_proxy' => $google_opts{'http_proxy'}
+        if defined $google_opts{'http_proxy'};
+
+    # Create a Net::Google instance, and store it.  We can reuse
+    # this for multiple queries.
+    $google = Net::Google->new(@create_opts);
 
     $dbh->STORE('driver_google' => $google);
     $dbh->STORE('driver_google_opts' => \%google_opts);
