@@ -21,7 +21,7 @@ SHA1 373b34cc927a941a75f08419ee9369312bb01501 Makefile.PL
 SHA1 5671fa59b23ce36487d74d414e456122ac0f99dc README
 SHA1 bedaa0c2542c37f184691772f7ea252f235f4978 lib/DBD/Google.pm
 SHA1 d7753bc18bc554b5b204ef5f4aa2191a9eea8ed5 lib/DBD/Google/GetInfo.pm
-SHA1 57727ac46dc649396f2e98cc283560852c192f0a lib/DBD/Google/db.pm
+SHA1 b22faa05b98b65f1dadf47b398795c6d75f16a2d lib/DBD/Google/db.pm
 SHA1 f184fc89598e67e385a2dcf5b3d81420c3e3bb13 lib/DBD/Google/dr.pm
 SHA1 13cec829fa3593e14df33e8d2f2814fbdfd37aef lib/DBD/Google/parser.pm
 SHA1 6762d6e965f11d7ea2b40a542bd67117b546b59a lib/DBD/Google/st.pm
@@ -36,9 +36,8 @@ SHA1 f2ef34d69157884e7b0ff6ce689d327d12cdfc52 t/signature.t
 SHA1 f23011c315f51af0765d84a6af12ca7df52811e5 t/sth.t
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: This message is digitally signed and can be verified for authenticity.
 
-iD8DBQFAIZvezsinjrVhZaoRAms6AJ9sv/Fran3H/D8ORKnqds6wU+6+nQCgkTnt
-GDArpoBpZv0XmDunsAi5zDI=
-=kdmp
+iD8DBQFAR7tazsinjrVhZaoRAk92AJ9b2WDOHR5+xRJOEZPzE8KsG2aatwCfUksf
+48ilauhaIwKZZ3J65RMu7lQ=
+=X5kU
 -----END PGP SIGNATURE-----
