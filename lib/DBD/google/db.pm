@@ -1,7 +1,7 @@
 package DBD::google::db;
 
 # ----------------------------------------------------------------------
-# $Id: db.pm,v 1.3 2003/03/14 21:55:46 dlc Exp $
+# $Id: db.pm,v 1.4 2003/03/18 15:41:51 dlc Exp $
 # ----------------------------------------------------------------------
 # The database handle (dbh)
 # ----------------------------------------------------------------------
@@ -13,17 +13,16 @@ use vars qw($VERSION $imp_data_size);
 use DBI;
 use DBD::google::parser;
 
-$VERSION = sprintf "%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%02d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
 $imp_data_size = 0;
 
 sub prepare {
     my ($dbh, $statement, @attr) = @_;
-    my ($sth, $parser, $parsed, $google,
-        $search, $search_opts);
+    my ($sth, $parsed, $google, $search, $search_opts);
 
     # Parse the SQL statement
-    $parser = DBD::google::parser->new;
     eval {
+        my $parser = DBD::google::parser->new;
         $parser->parse($statement)
             or die $parser->errstr;
         $parsed = $parser->structure;
@@ -34,6 +33,8 @@ sub prepare {
     $search_opts = $dbh->FETCH('driver_google_opts');
 
     # Create the search object
+    # XXX Start work here -- need a way to retrieve the column
+    # names, limit items, and where clause from $parsed
     $search = $google->search(%$search_opts);
     $search->query($parsed->where);
     $search->starts_at($parsed->start);
@@ -97,6 +98,14 @@ sub rollback {
         if $dbh->FETCH('Warn');
 
     0;
+}
+
+sub get_info {
+    my($dbh, $info_type) = @_;
+    require DBD::google::GetInfo;
+    my $v = $DBD::google::GetInfo::info{int($info_type)};
+    $v = $v->($dbh) if ref $v eq 'CODE';
+    return $v;
 }
 
 1;
