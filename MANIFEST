@@ -12,3 +12,4 @@ t/load.t
 t/parser.t
 t/sample-key
 t/sth.t
+t/regexes.t
