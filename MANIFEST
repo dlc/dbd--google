@@ -1,0 +1,14 @@
+lib/DBD/google/db.pm
+lib/DBD/google/dr.pm
+lib/DBD/google/parser.pm
+lib/DBD/google.pm
+lib/DBD/google/st.pm
+Makefile.PL
+MANIFEST
+MANIFEST.SKIP
+README
+t/connect.t
+t/load.t
+t/parser.t
+t/sample-key
+t/sth.t
