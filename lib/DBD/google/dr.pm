@@ -1,7 +1,7 @@
 package DBD::google::dr;
 
 # ----------------------------------------------------------------------
-# $Id: dr.pm,v 1.4 2003/03/18 15:41:28 dlc Exp $
+# $Id: dr.pm,v 1.5 2003/03/20 16:30:02 dlc Exp $
 # ----------------------------------------------------------------------
 # This is the driver implementation.
 # DBI->connect defers to this class.
@@ -16,7 +16,7 @@ use DBI;
 use Net::Google;
 use Symbol qw(gensym);
 
-$VERSION = sprintf "%d.%02d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
+$VERSION = 0.06;
 $imp_data_size = 0;
 
 # These are valid Net::Google::Search options

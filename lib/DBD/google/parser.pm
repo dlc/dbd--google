@@ -1,9 +1,8 @@
 package DBD::google::parser;
 
 # ----------------------------------------------------------------------
-# $Id: parser.pm,v 1.4 2003/03/18 15:42:29 dlc Exp $
+# $Id: parser.pm,v 1.5 2003/03/20 16:30:02 dlc Exp $
 # ----------------------------------------------------------------------
-
 # This package needs to subclass SQL::Parser, in order that the
 # functions defined can be used.  WIth SQL::Parser 1.005, the
 # SELECT_CLAUSE method needs to be overridden.
@@ -12,6 +11,7 @@ package DBD::google::parser;
 # soon, and that it will support more functions and such.  There
 # might need to be some logic in here to ensure that an incompatible
 # version of SQL::Parser is not being used.
+# ----------------------------------------------------------------------
 
 use strict;
 use base qw(SQL::Parser);
@@ -23,27 +23,29 @@ use HTML::Entities qw(encode_entities);
 use SQL::Parser;
 use URI::Escape qw(uri_escape);
 
-$VERSION = sprintf "%d.%02d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
+$VERSION = 0.06;
 
-# XXX $FUNC_RE needs to catch methods as well as functions.  Currently
-# catches things like Digest::MD5::md5_hex(title) but will miss methods
-# like URI->new(URL).
-
+# Package-scoped variables
+# These are not lexicals so that they can be used in tests
 $FIELD_RE = '[a-zA-Z][a-zA-Z0-9_]';
-#$FUNC_RE = qr/$FIELD_RE*(?:::$FIELD_RE*)*/;
 $FUNC_RE = qr/$FIELD_RE*(?:::$FIELD_RE*)*(?:[-]>$FIELD_RE*)?/; # methods?
 $FIELD_RE = qr/$FIELD_RE*/;
+
 my @default_columns = sort qw( title URL snippet summary
                                cachedSize directoryTitle
                                hostName directoryCategory
                              );
-my %allowed_columns = map { lc($_) => 1 } @default_columns;
+my %allowed_columns = map { $_ => 1 }
+                      map { $_, lc $_, uc $_ }
+                      @default_columns;
 
+# All functions are passed two items: the Net::Google::Search
+# instanace and the text to be fiddled with.
 my %functions = (
-    'default'       => sub { shift                  },
-    'uri_escape'    => sub { uri_escape(shift)      },
-    'html_escape'   => sub { encode_entities(shift) },
-    'count'         => sub { },
+    'default'       => sub { $_[1]                  },
+    'uri_escape'    => sub { uri_escape($_[1])      },
+    'html_escape'   => sub { encode_entities($_[1]) },
+    'count'         => \&count,
     'html_strip'    => \&striphtml,
 );
 $functions{''} = $functions{'default'};
@@ -80,23 +82,21 @@ sub new { return shift->SUPER::new("Google", @_) }
 #
 #   package::function(field) AS "alias"
 #
-# Will (heopfully) soon understand:
-#
 #   package->method(field)
 #
 #   package->method(field) AS alias
 #
 #   package->method(field) AS "alias"
 #
-# Currently fails on:
-#
-#   function(field, args)
-#
 # ----------------------------------------------------------------------
 sub SELECT_CLAUSE {
     my ($self, $sql) = @_;
     #warn "Got: \$sql => '$sql'\n";
     my ($columns, $limit, @columns, @limit, $where, $parsed);
+
+    # SQL::Parser::clean_sql does funny things to strings
+    # that look like methods
+    $sql = $self->unclean_cleaned_sql($sql);
 
     # Internal data structures, given shorter names
     my $column_names =  $self->{'struct'}->{'column_names'}     = [ ];
@@ -130,7 +130,7 @@ sub SELECT_CLAUSE {
                         \s*
                         ,?
                         \s*
-                       /xismg) {
+                       /xsmg) {
         my $alias = $5 || "";
         my $function = $1 || "";
 
@@ -139,10 +139,14 @@ sub SELECT_CLAUSE {
         if (defined $3) {
             # SELECT * -> expanded to all column names
             my $df = $functions{'default'};
-            push  @$column_names,                    @default_columns;
-            %$ORG_NAME     = map { (uc($_) => $_) }  @default_columns;
-            %$functions    = map { (uc($_) => $df) } @default_columns;
-            %$aliases      = map { (uc($_) => $_) }  @default_columns;
+            for (@default_columns) {
+                my $uc_ = uc $_;
+
+                push @$column_names   => $_  ;
+                $ORG_NAME->{  $uc_ }  =  $_  ;
+                $functions->{ $uc_ }  =  $df ;
+                $aliases->{   $uc_ }  =  $_  ;
+            }
         }
         elsif ($function) {
             # SELECT foo(bar)
@@ -193,14 +197,14 @@ sub SELECT_CLAUSE {
                         }
                         else {
                             if ($type eq '::') {
-                                if (defined &{"$package\::$func"}) {
-                                    $f = \&{"$package\::$func"};
+                                if (defined(my $g = \&{"$package\::$func"})) {
+                                    $f = sub { shift; $g->(@_) };
                                 } else {
                                     $$errstr = "Can't load $package\::$func";
                                 }
                             }
                             elsif ($type eq '->') {
-                                $f = sub { $package->$func(@_) };
+                                $f = sub { shift; $package->$func(@_) };
                             }
                             else {
                                 $f = $functions{'default'};
@@ -209,10 +213,12 @@ sub SELECT_CLAUSE {
                     }
                     else {
                         # Function that matches $FUNC_RE but doesn't contain
-                        # :: or ->; might be a built-in, such as uc or lc.
-                        # This won't work; what will?
+                        # :: or ->; might be a built-in, such as uc, lc, 
+                        # gethostbyname, unlink, or even
+                        # 'system("GET www.pr0n.com | mail ceo@my.company")'.
                         #
-                        # $f = sub { $f(@_) };
+                        # This sucks, BTW.
+                        $f = eval qq(sub { $f(\$_[1]) };);
                     }
                 }
             }
@@ -223,18 +229,20 @@ sub SELECT_CLAUSE {
                 $f = $functions{'default'};
             }
 
+            my $uc = uc $n;
             push @$column_names, $n;
-            $ORG_NAME->{  uc($n) } = $n;
-            $functions->{ uc($n) } = $f;
-            $aliases->{   uc($n) } = $alias ? $alias : $n;
+            $ORG_NAME->{  $uc } = $n;
+            $functions->{ $uc } = $f;
+            $aliases->{   $uc } = $alias ? $alias : $n;
         }
         elsif (defined $2) {
-            my $n = lc($2);
-            if ($allowed_columns{$n}) {
-                push @$column_names, $n;
-                $ORG_NAME->{  uc($n) } = $n;
-                $functions->{ uc($n) } = $functions{'default'};
-                $aliases->{   uc($n) } = $alias ? $alias : $n;
+            my $lc = lc $2;
+            my $uc = uc $2;
+            if ($allowed_columns{$lc}) {
+                push @$column_names, $lc;
+                $ORG_NAME->{  $uc } = $lc;
+                $functions->{ $uc } = $functions{'default'};
+                $aliases->{   $uc } = $alias ? $alias : $lc;
             } else {
                 $$errstr = "Unknown column name '$2'";
                 return;
@@ -246,15 +254,86 @@ sub SELECT_CLAUSE {
 }
 
 # ----------------------------------------------------------------------
-# striphtml($text)
+# decompose()
+#
+# Returns a data structure, similar to the structure() method, that
+# contains only what DBD::google::db needs to pass to Net::Google.
+# The data structure looks like:
+#
+# {
+#   QUERY => "query string",
+#   COLUMNS => [
+#               {
+#                 FIELD => "Net::Google methodname",
+#                 FUNCTION => sub { },
+#                 ALIAS => "alias",
+#               },
+#              ],
+#   LIMIT => {
+#               limit => X,
+#               offset => Y,
+#            },
+# }
+# ----------------------------------------------------------------------
+sub decompose {
+    my $self = shift;
+    my $struct = $self->structure;
+    my %data = ();
+
+    # Limit (use defaults of 0, 10)
+    $data{'LIMIT'} = $struct->{'limit_clause'} || { offset => 0, limit => 10 };
+
+    # Where
+    $data{'WHERE'} = $struct->{'where_clause'}->{'arg2'}->{'value'} || "";
+    $data{'WHERE'} =~ tr/'"//d;
+
+    # Columns
+    $data{'COLUMNS'} = [
+        map { { FIELD    => $struct->{'ORG_NAME'}->{$_},
+                FUNCTION => $struct->{'column_functions'}->{$_},
+                ALIAS    => $struct->{'column_aliases'}->{$_},
+            } }          @{ $struct->{'column_names'} }
+    ];
+
+    return wantarray ? %data : \%data;
+}
+
+# ----------------------------------------------------------------------
+# unclean_cleaned_sql($sql)
+#
+# Undo some of the damage that SQL::Parser::clean_sql does to functions
+# that look like Perl methods, e.g., Foo::Bar->new(title) gets turned
+# into Foo::Bar- > new (title), which is no good.
+# ----------------------------------------------------------------------
+sub unclean_cleaned_sql {
+    my ($self, $sql) = @_;
+
+    $sql =~ s/\s*([-<>])\s*/$1/g;
+
+    return $sql;
+}
+
+# ----------------------------------------------------------------------
+# striphtml($ng, $text)
 #
 # A function for stripping HTML.  Very naive; it it becomes an
 # issue, I'll include TCHRIST's striphtml.
 # ----------------------------------------------------------------------
 sub striphtml {
-    my $text = shift;
+    my $text = $_[1];
     $text =~ s#</?[^>]*>##smg;
     return $text;
+}
+
+# ----------------------------------------------------------------------
+# count($ng)
+#
+# Returns the total number of results.
+# ----------------------------------------------------------------------
+sub count {
+    my $ngs = shift; # Net::Google::Search instance
+    my $res = $ngs->response;
+    return $res->estimateTotalResultsNumber;
 }
 
 1;

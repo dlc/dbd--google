@@ -1,7 +1,7 @@
 package DBD::google::db;
 
 # ----------------------------------------------------------------------
-# $Id: db.pm,v 1.4 2003/03/18 15:41:51 dlc Exp $
+# $Id: db.pm,v 1.5 2003/03/20 16:30:02 dlc Exp $
 # ----------------------------------------------------------------------
 # The database handle (dbh)
 # ----------------------------------------------------------------------
@@ -13,14 +13,13 @@ use vars qw($VERSION $imp_data_size);
 use DBI;
 use DBD::google::parser;
 
-$VERSION = sprintf "%d.%02d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
+$VERSION = 0.06;
 $imp_data_size = 0;
 
 sub prepare {
     my ($dbh, $statement, @attr) = @_;
     my ($sth, $parsed, $google, $search, $search_opts);
 
-    # Parse the SQL statement
     eval {
         my $parser = DBD::google::parser->new;
         $parser->parse($statement)
@@ -36,13 +35,13 @@ sub prepare {
     # XXX Start work here -- need a way to retrieve the column
     # names, limit items, and where clause from $parsed
     $search = $google->search(%$search_opts);
-    $search->query($parsed->where);
-    $search->starts_at($parsed->start);
-    $search->max_results($parsed->end);
+    $search->query($parsed->{'WHERE'});
+    $search->starts_at($parsed->{'LIMIT'}->{'offset'});
+    $search->max_results($parsed->{'LIMIT'}->{'limit'});
 
     $sth = DBI::_new_sth($dbh, {
         'Statement' => $statement,
-        'Columns' => $parsed->columns,
+        'Columns' => $parsed->{'COLUMNS'},
         'GoogleSearch' => $search,
     });
 

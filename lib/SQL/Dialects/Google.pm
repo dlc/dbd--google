@@ -1,5 +1,10 @@
 package SQL::Dialects::Google;
 
+use strict;
+use vars qw($VERSION);
+
+$VERSION = 0.06;
+
 =pod
 
 =head1 NAME

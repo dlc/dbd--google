@@ -1,7 +1,7 @@
 package DBD::google;
 
 # ----------------------------------------------------------------------
-# $Id: google.pm,v 1.4 2003/03/18 15:40:57 dlc Exp $
+# $Id: google.pm,v 1.5 2003/03/20 16:30:02 dlc Exp $
 # ----------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ $err     = 0;
 $errstr  = "";
 $state   = "";
 $drh     = undef;
-$VERSION = 1.03;
+$VERSION = 0.06;
 
 # ----------------------------------------------------------------------
 # Creates a new driver handle, which will be a singleton.
@@ -223,11 +223,21 @@ The column specifications can include aliases:
 
   SELECT directoryCategory as DC FROM google WHERE...
 
-Finally, C<DBD::google> supports functions:
+C<DBD::google> supports functions of a few types:  native C<DBD::google>
+functions, arbitrary functions or methods in the form Package::Function
+or Package->Method, and any Perl builtin that expects a single scalar and
+returns a single scalar (C<uc>, C<quotemeta>, C<oct>, etc).
 
-  SELECT title, html_encode(url) FROM google WHERE q = '$stuff'
+These functions are used like you would expect:
 
-There are several available functions available by default:
+  SELECT title,
+         Digest::MD5::md5_hex(title) as checksum,
+         URL,
+         html_encode(URL) as URI
+    FROM google
+   WHERE q = '$stuff'
+
+The native C<DBD::google> functions include:
 
 =over 16
 
@@ -247,8 +257,8 @@ this function can be used to undo that damage.
 
 =back
 
-Finally, C<DBD::google> also supports arbitrary functions, specified
-using a fully qualified Perl package identifier:
+C<DBD::google>'s support for arbitrary functions is limited to fuctions
+or methods specified using a fully qualified Perl package identifier:
 
   SELECT title, Digest::MD5::md5_hex(title) FROM google WHERE ...
 
@@ -271,7 +281,8 @@ C<DBD::google> is pure perl, and has a few module requirements:
 =item Net::Google
 
 This is the heart of the module; C<DBD::google> is basically a
-DBI-compliant wrapper around C<Net::Google>.
+DBI-compliant wrapper around C<Net::Google>.  As of C<DBD::google>
+0.06, C<Net::Google> 0.60 or higher is required.
 
 =item HTML::Entities, URI::Escape
 
@@ -351,20 +362,6 @@ These are listed in the order in which I'd like to implement them.
 
 =over 4
 
-=item More tests!
-
-I'm particularly unimpressed with the test suite for the SQL parser; I
-think it is pretty pathetic.  It needs much better testing, with more
-edge cases and more things I'm not expecting to find.
-
-I've specifically avoided including tests that actually query Google,
-because the free API keys have a daily limit to the number of requests
-that will be answered.  My original test suite did a few dozen queries
-each time it was run; if you run the test suite a few dozen times in a
-day (easy to do if you are actively developing the software or
-changing the feature set), your daily quota can be eaten up very
-easily.
-
 =item Integration of search metadata
 
 There are several pieces of metadata that come back with searches;
@@ -405,25 +402,6 @@ searchTime
 
 These are described in L<Net::Google::Response>.
 
-=item Extensible functions
-
-Unknown functions that look like Perl package::function names should
-probably be treated as such, and AUTOLOADed:
-
-  SELECT Foo::frob(title) FROM google WHERE q = "perl"
-
-Would do, effectively:
-
-  require Foo;
-  $title = Foo::frob($title);
-
-I'm slightly afraid of where this could lead, though:
-
-  SELECT title, LWP::Simple::get(url) as WholeDamnThing
-  FROM   google
-  WHERE  q = "perl apache"
-  LIMIT  0, 100
-
 =item Elements return objects, instead of strings
 
 It would be interesting for columns like URL and hostName to return
@@ -432,7 +410,7 @@ C<URI> and C<Net::hostent> objects, respectively.
 On the other hand, this is definitely related to the previous item; the
 parser could be extended to accept function names in method format:
 
-  SELECT title, URI->new(URL), Net::hostent->new(hostName)
+  SELECT title, URI->new(URL), Net::hostent::gethost(hostName)
   FROM google WHERE q = "perl"
 
 =item DESCRIBE statement on the C<google> table

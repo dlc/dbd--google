@@ -1,7 +1,7 @@
 package DBD::google::st;
 
 # ----------------------------------------------------------------------
-# $Id: st.pm,v 1.2 2003/02/20 12:49:02 dlc Exp $
+# $Id: st.pm,v 1.3 2003/03/20 16:30:02 dlc Exp $
 # ----------------------------------------------------------------------
 # DBD::google::st - Statement handle
 # ----------------------------------------------------------------------
@@ -12,7 +12,7 @@ use vars qw($VERSION $imp_data_size);
 
 use DBI;
 
-$VERSION = sprintf "%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+$VERSION = 0.06;
 $imp_data_size = 0;
 
 # ----------------------------------------------------------------------
@@ -66,7 +66,7 @@ sub execute {
             $value = defined $method ? $result->$method() : "";
 
             $function = $column->function;
-            eval { $value = &$function($value); }
+            eval { $value = &$function($search, $value); }
                 if defined $function;
 
             push @this, ($@ or $value or "");

@@ -1,38 +1,62 @@
 #!/usr/bin/perl
 # vim: set ft=perl:
 
+use strict;
+use vars qw($parsed);
+
 # The format of all of these tests is highly dependant on the internals
 # of SQL::Parser, and are therefore subject to change.  If these tests
-# suddenly stop passing, then blame Jeff Zucker.
+# suddenly stop passing, blame Jeff Zucker.
 
 use DBD::google::parser;
 use Test::More;
 
-plan tests => 34;
+plan tests => 54;
 
-# This creates a new parser for each invocation; can parsers be reused?
+# Parse an SQL statement, and return the data we care about.
 sub p {
     my $parser = DBD::google::parser->new;
-    $parser->parse($_[0]);
-    return $parser->structure;
+    $parser->parse($_[0])
+        or die $parser->errstr;
+    return $parser->decompose;
 }
 
-my $parsed;
+# This retrieves the code ref specified for the first
+# column in $sql, named $funcname, and applies @testdata
+# to it.  We expect $expected.  E.g.:
+#
+#   apply_function("select uc(foo) from google",
+#                  "uc", "HELLO", "hello");
+sub apply_function {
+    my ($sql, $funcname, $expected, @testdata) = @_;
+
+    ok($parsed = p($sql), "Parsed statement");
+    my $c = $parsed->{'COLUMNS'}->[0]->{'FUNCTION'};
+    is(ref($c),
+        'CODE',
+        "$parsed->{'COLUMNS'}->[0]->{'FIELD'} => CODE ref");
+    if (ref($expected) eq 'CODE') {
+        my $r = $c->(undef, @testdata);
+        $expected->($r);
+    }
+    else {
+        is($c->(undef, @testdata),
+            $expected,
+            "$funcname(@testdata) -> $expected");
+    }
+}
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Basic test
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ok($parsed = p('SELECT * FROM google'),
     "Parsed statement");
-is(ref($parsed->{'table_names'}),
+is(ref($parsed->{'COLUMNS'}),
     'ARRAY',
-    "\$parsed->table_names is an array");
-is(scalar @{ $parsed->{'table_names'} },
-    1,
-    "scalar \@\$parsed->table_names == 1");
-ok(!$parsed->{'where_clause'},
+    "\$parsed->columns is an array");
+ok(!$parsed->{'WHERE'},
     "\$parsed->where is not defined");
-is(scalar @{ $parsed->{'column_names'} },
+is(scalar @{ $parsed->{'COLUMNS'} },
     8,
     "Correct number of columns");
 
@@ -42,15 +66,15 @@ is(scalar @{ $parsed->{'column_names'} },
 ok($parsed = p('SELECT * FROM google LIMIT 0, 10'),
     "Parsed statement");
 
-is(scalar @{ $parsed->{'column_names'} },
+is(scalar @{ $parsed->{'COLUMNS'} },
     8,
     "Correct number of columns");
-is($parsed->{'limit_clause'}->{'limit'},
+is($parsed->{'LIMIT'}->{'limit'},
     10,
-    "\$parsed->limit_clause->limit => 10");
-is($parsed->{'limit_clause'}->{'offset'},
+    "\$parsed->limit->limit => 10");
+is($parsed->{'LIMIT'}->{'offset'},
     0,
-    "\$parsed->limit_clause->offset => 0");
+    "\$parsed->limit->offset => 0");
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # More extensive, multiline statement.  (The multiline aspect was more
@@ -67,102 +91,102 @@ ok($parsed = p('
     LIMIT
       40, 80'), "Parsed statement");
 
-is(ref($parsed->{'column_names'}),
+is(ref($parsed->{'COLUMNS'}),
     "ARRAY",
-    "\$parsed->column_names => array");
-is(scalar(@{ $parsed->{'column_names'} }),
+    "\$parsed->columns => array");
+is(scalar(@{ $parsed->{'COLUMNS'} }),
     1,
-    "scalar \@\$parsed->column_names == 1");
-is($parsed->{'column_names'}->[0],
-    "TITLE",
-    "\$parsed->column_names = ('title')");
-is($parsed->{'column_aliases'}->{'TITLE'},
+    "scalar \@\$parsed->columns == 1");
+is($parsed->{'COLUMNS'}->[0]->{'FIELD'},
     "title",
-    "\$parsed->column_aliases->title OK");
-is(ref($parsed->{'column_functions'}->{'TITLE'}),
+    "\$parsed->columns(0)->field == 'title'");
+is($parsed->{'COLUMNS'}->[0]->{'ALIAS'},
+    "title",
+    "\$parsed->columns(0)->alias == 'title'");
+is(ref($parsed->{'COLUMNS'}->[0]->{'FUNCTION'}),
     "CODE",
-    "\$parsed->column_functions->title OK");
-is($parsed->{'where_clause'}->{'arg2'}->{'value'},
-    '"perl"',   # Note quotes!
+    "\$parsed->columns(0)->function OK");
+is($parsed->{'WHERE'},
+    'perl',
     "Multi-line SQL statement parses correctly");
-is($parsed->{'limit_clause'}->{'offset'},
+is($parsed->{'LIMIT'}->{'offset'},
     40,
-    "\$parsed->limit_clause->offset => 40");
-is($parsed->{'limit_clause'}->{'limit'},
+    "\$parsed->limit->offset => 40");
+is($parsed->{'LIMIT'}->{'limit'},
     80,
-    "\$parsed->limit_clause->limit => 80");
+    "\$parsed->limit->limit => 80");
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ok($parsed = p('SELECT title, url, summary FROM google WHERE q = "foo"'),
     "Parsed statement");
-is(scalar @{ $parsed->{'column_names'} },
+is(scalar @{ $parsed->{'COLUMNS'} },
     3,
     "Correct number of columns");
-is($parsed->{'column_aliases'}->{'TITLE'},
+is($parsed->{'COLUMNS'}->[0]->{'ALIAS'},
     'title',
     'No alias correctly defined');
-is($parsed->{'where_clause'}->{'arg1'}->{'value'},
-    'Q',
+is($parsed->{'WHERE'},
+    'foo',
     "WHERE q = 'foo'");
-is($parsed->{'where_clause'}->{'arg2'}->{'value'},
-    '"foo"',
-    "WHERE q = 'foo'");
-
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-ok($parsed = p("SELECT url, snippet FROM google WHERE q = 'bar'"),
-    "Parsed statement");
-is(scalar @{ $parsed->{'column_names'} },
-    2,
-    "Correct number of columns");
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ok($parsed = p("select * from google limit 5"),
     "Parsed statement");
-is($parsed->{'limit_clause'}->{'offset'},
+is($parsed->{'LIMIT'}->{'offset'},
     undef,
-    "\$parsed->limit_clause->offset => undef");
-is($parsed->{'limit_clause'}->{'limit'},
+    "\$parsed->limit->offset => undef");
+is($parsed->{'LIMIT'}->{'limit'},
     5,
-    "\$parsed->limit_clause->limit => 5");
+    "\$parsed->limit->limit => 5");
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Function tests
 #
 # Builtin and random functions
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-ok($parsed = p("select html_strip(summary) from google where q = 'perl'"),
-    "Parsed statement");
-my $c = $parsed->{'column_functions'}->{'SUMMARY'};
-is(ref($c),
-    'CODE',
-    "striphtml => CODE ref");
-is($c->("<b>hello</b>"),
-    "hello",
-    "striphtml works ok");
+# Predefined functions
+apply_function("select html_strip(summary) from google where q = 'perl'",
+               qw(html_strip hello <b>hello</b>));
 
+# Arbitrary builtin functions
+apply_function("SELECT uc(title) FROM google WHERE q = 'perl'",
+              qw(uc HELLO hello));
+apply_function("SELECT oct(title) FROM google",
+              qw(oct 1309 2435));
+apply_function("SELECT length(title) FROM google",
+              "length", 12, "Hello, world");
+apply_function("SELECT quotemeta(URL) FROM google",
+              "quotemeta", '\\\n', '\n'); 
+apply_function("SELECT quotemeta(URL) FROM google",
+              "quotemeta", '\[', '['); 
+apply_function("SELECT quotemeta(URL) FROM google",
+              "quotemeta", '\\\0', '\0'); 
+
+SKIP: {
+    skip "No network!" => 3
+        if $ENV{'NO_NET'};
+    apply_function("SELECT Net::hostent::gethost(hostName) FROM google",
+                "Net::hostent::gethost",
+                sub { isa_ok($_[0], "Net::hostent") },
+                "localhost");
+}
+
+# Arbitrary functions: Foo::Bar::baz() style
 SKIP: {
     skip "Can't load Digest::MD5" => 3
         unless eval { require Digest::MD5 };
 
     my $md5 = "c822c1b63853ed273b89687ac505f9fa";
-    ok($parsed = p('select Digest::MD5::md5_hex(title) from google'),
-        "Parsed statement");
-    is(ref($parsed->{'column_functions'}->{'TITLE'}),
-        'CODE',
-        "Random function (Digest::MD5::md5_hex) OK");
-    is($parsed->{'column_functions'}->{'TITLE'}->("google"),
-        $md5,
-        "md5('google') -> '$md5'");
+    apply_function('select Digest::MD5::md5_hex(title) from google',
+                   "Digest::MD5::md5_hex", $md5, "google");
 }
 
-#TODO: {
-#    local $todo = "Methods not yet functional";
-#    ok(eval { $parsed = p('SELECT URI->new(URL) from google where q = "apache"') },
-#        "Parsed statement");
-#    is(ref($parsed->{'column_functions'}->{'URL'}),
-#        "CODE",
-#        "Random method (URI->new) OK");
-#    my $u;
-#    eval { $u = $parsed->{'column_functions'}->{'URL'}->('//www.google.com/search', 'http') };
-#    isa_ok($u, "URI::http");
-#}
+# Arbitrary functions: Foo::Bar->baz() style
+SKIP: {
+    skip "Can't load URI" => 3
+        unless eval { require URI };
+
+    apply_function('SELECT URI->new(URL) from google where q = "apache"',
+                   "URI->new", sub { isa_ok($_[0], "URI::http") },
+                   qw(//www.google.com/search http));
+}
