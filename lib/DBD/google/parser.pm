@@ -1,7 +1,7 @@
 package DBD::google::parser;
 
 # ----------------------------------------------------------------------
-# $Id: parser.pm,v 1.3 2003/03/11 14:01:45 dlc Exp $
+# $Id: parser.pm,v 1.4 2003/03/18 15:42:29 dlc Exp $
 # ----------------------------------------------------------------------
 
 # This package needs to subclass SQL::Parser, in order that the
@@ -23,15 +23,15 @@ use HTML::Entities qw(encode_entities);
 use SQL::Parser;
 use URI::Escape qw(uri_escape);
 
-$VERSION = sprintf "%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%02d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
 
 # XXX $FUNC_RE needs to catch methods as well as functions.  Currently
 # catches things like Digest::MD5::md5_hex(title) but will miss methods
 # like URI->new(URL).
 
 $FIELD_RE = '[a-zA-Z][a-zA-Z0-9_]';
-$FUNC_RE = qr/$FIELD_RE*(?:::$FIELD_RE*)*/;
-#my $FUNC_RE = qr/$FIELD_RE*(?:::$FIELD_RE*)*(?:[-]>$FIELD_RE*)?/; # methods?
+#$FUNC_RE = qr/$FIELD_RE*(?:::$FIELD_RE*)*/;
+$FUNC_RE = qr/$FIELD_RE*(?:::$FIELD_RE*)*(?:[-]>$FIELD_RE*)?/; # methods?
 $FIELD_RE = qr/$FIELD_RE*/;
 my @default_columns = sort qw( title URL snippet summary
                                cachedSize directoryTitle
@@ -43,6 +43,7 @@ my %functions = (
     'default'       => sub { shift                  },
     'uri_escape'    => sub { uri_escape(shift)      },
     'html_escape'   => sub { encode_entities(shift) },
+    'count'         => sub { },
     'html_strip'    => \&striphtml,
 );
 $functions{''} = $functions{'default'};
@@ -159,48 +160,61 @@ sub SELECT_CLAUSE {
                 return;
             }
 
-            if (defined $functions{$f}) {
-                # Common case:
-                #
-                #   SELECT html_strip(title) FROM google ...
-                #
-                # A pre-defined function.
-                $f = $functions{$f};
-            }
-            elsif ($f =~ /::/) {
-                # If a user specifies a function like:
-                #
-                #   SELECT Digest::MD5::md5_hex(title) FROM google ...
-                #
-                # This will pick that up.  $FUNC_RE only catches
-                # things in the above format; there should be an
-                # associated $METHOD_RE which will catch things
-                # like:
-                #
-                #   SELECT URI->new(URL) FROM google ...
-                #
-                my ($package, $func) = $f =~ /(.*)::(.*)/;
-
-                eval "use $package;";
-                if ($@) {
-                    $$errstr = $@;
-                    return;
+            # Possible cases include:
+            #   1. No function defined
+            #   2. Function defined that we know about
+            #   3. Function defined we don't know about
+            #       3a. Function/method to be loaded
+            #       3b. Error
+            if ($f) {
+                if (defined $functions{$f}) {
+                    # Common case:
+                    #
+                    #   SELECT html_strip(title) FROM google ...
+                    #
+                    # A pre-defined function.
+                    $f = $functions{$f};
                 }
                 else {
-                    if (defined &{"$package\::$func"}) {
-                        $f = \&{"$package\::$func"};
+                    # If a user specifies a function like:
+                    #
+                    #   SELECT Digest::MD5::md5_hex(title) FROM google ...
+                    #
+                    # or:
+                    #
+                    #   SELECT URI->new(URL) FROM google ...
+                    #
+                    if (my ($package, $type, $func) = $f =~ /(.*)(::|[-]>)(.*)/) {
+
+                        eval "use $package;";
+                        if ($@) {
+                            $$errstr = $@;
+                            return;
+                        }
+                        else {
+                            if ($type eq '::') {
+                                if (defined &{"$package\::$func"}) {
+                                    $f = \&{"$package\::$func"};
+                                } else {
+                                    $$errstr = "Can't load $package\::$func";
+                                }
+                            }
+                            elsif ($type eq '->') {
+                                $f = sub { $package->$func(@_) };
+                            }
+                            else {
+                                $f = $functions{'default'};
+                            }
+                        }
                     }
                     else {
-                        $f = $functions{'default'};
+                        # Function that matches $FUNC_RE but doesn't contain
+                        # :: or ->; might be a built-in, such as uc or lc.
+                        # This won't work; what will?
+                        #
+                        # $f = sub { $f(@_) };
                     }
                 }
-            }
-            elsif ($f) {
-                # Function in the SQL, but not one we've defined, e.g.:
-                #
-                #   SELECT lala(title) FROM google
-                $$errstr = "No such function $f";
-                return;
             }
             else {
                 # No function:

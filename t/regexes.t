@@ -6,13 +6,17 @@
 use DBD::google::parser;
 use Test::More;
 
-my @tests = ("Foo::Bar",
-            "Foo->Bar",
-            "Foo::Bar::quux",
-            "Foo::Bar->quux",
-            "URI->new(URL)",
-            "URI::new(URL)",
-            "crap");
+my @tests = qw(
+    Foo::Bar
+    Foo->Bar
+    Foo::Bar::quux
+    Foo::Bar->quux
+    URI->new(URL)
+    URI::new(URL)
+    crap
+    html_escape(title)
+    HTML::Entities->encode_entities(title)
+);
 my $func_re = $DBD::google::parser::FUNC_RE;
 
 plan tests => scalar @tests;
