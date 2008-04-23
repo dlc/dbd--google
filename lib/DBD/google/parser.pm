@@ -1,8 +1,6 @@
 package DBD::google::parser;
 
 # ----------------------------------------------------------------------
-# $Id: parser.pm,v 1.6 2003/03/27 19:56:56 dlc Exp $
-# ----------------------------------------------------------------------
 # This package needs to subclass SQL::Parser, in order that the
 # functions defined can be used.  WIth SQL::Parser 1.005, the
 # SELECT_CLAUSE method needs to be overridden.

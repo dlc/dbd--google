@@ -1,8 +1,6 @@
 package DBD::Google::parser;
 
 # ----------------------------------------------------------------------
-# $Id: parser.pm,v 1.2 2004/04/09 22:20:17 dlc Exp $
-# ----------------------------------------------------------------------
 # This package needs to subclass SQL::Parser, in order that the
 # functions defined can be used.  WIth SQL::Parser 1.005, the
 # SELECT_CLAUSE method needs to be overridden.
@@ -23,7 +21,7 @@ use HTML::Entities qw(encode_entities);
 use SQL::Parser;
 use URI::Escape qw(uri_escape);
 
-$VERSION = "2.00";  # $Date: 2004/04/09 22:20:17 $
+$VERSION = "2.00";
 
 # Package-scoped variables
 # These are not lexicals so that they can be used in tests
