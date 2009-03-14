@@ -11,7 +11,7 @@ my %PREREQ_PM = (
     'Symbol'            => 0,
     'Test::More'        => 0,
     'URI::Escape'       => 0,
-    'SQL::Statement'    => 1.20,
+    'SQL::Statement'    => 1.00,
 );
 
 my %clean = (
