@@ -3,7 +3,7 @@ package SQL::Dialects::Google;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = 0.06;
+$VERSION = 0.50;
 
 =pod
 

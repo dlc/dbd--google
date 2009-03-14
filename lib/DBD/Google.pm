@@ -1,7 +1,7 @@
 package DBD::Google;
 
 use strict;
-use vars qw($VERSION);
+use vars qw($VERSION $REVISION);
 use vars qw($err $errstr $state $drh);
 
 use DBI;
@@ -10,7 +10,8 @@ use DBD::Google::db;
 use DBD::Google::st;
 use DBD::Google::parser;
 
-$VERSION = "0.10";
+$VERSION = "0.50";
+$REVISION = $VERSION;
 
 # ----------------------------------------------------------------------
 # Standard DBI globals: $DBI::err, $DBI::errstr, etc

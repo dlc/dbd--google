@@ -21,7 +21,7 @@ use HTML::Entities qw(encode_entities);
 use SQL::Parser;
 use URI::Escape qw(uri_escape);
 
-$VERSION = 0.06;
+$VERSION = 0.50;
 
 # Package-scoped variables
 # These are not lexicals so that they can be used in tests

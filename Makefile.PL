@@ -11,6 +11,7 @@ my %PREREQ_PM = (
     'Symbol'            => 0,
     'Test::More'        => 0,
     'URI::Escape'       => 0,
+    'SQL::Statement'    => 1.20,
 );
 
 my %clean = (
@@ -19,7 +20,7 @@ my %clean = (
 
 WriteMakefile(
     NAME        => "DBD::Google",
-    VERSION     => "0.11",
+    VERSION     => "0.50",
     PREREQ_PM   => \%PREREQ_PM,
     clean       => \%clean,
 );

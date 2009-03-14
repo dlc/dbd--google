@@ -14,7 +14,7 @@ use DBI;
 use Net::Google;
 use Symbol qw(gensym);
 
-$VERSION = 0.06;
+$VERSION = 0.50;
 $imp_data_size = 0;
 
 # These are valid Net::Google::Search options

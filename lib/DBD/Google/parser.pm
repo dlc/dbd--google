@@ -29,7 +29,7 @@ $FIELD_RE = '[a-zA-Z][a-zA-Z0-9_]';
 $FUNC_RE = qr/$FIELD_RE*(?:::$FIELD_RE*)*(?:[-]>$FIELD_RE*)?/; # methods?
 $FIELD_RE = qr/$FIELD_RE*/;
 
-my @default_columns = sort qw( title URL snippet summary
+my @default_columns = sort qw( title url snippet summary
                                cachedSize directoryTitle
                                hostName directoryCategory
                              );
