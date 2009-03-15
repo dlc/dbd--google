@@ -5,7 +5,7 @@ use DBI::DBD;
 use ExtUtils::MakeMaker;
 
 my %PREREQ_PM = (
-    'DBI'               => 1.39,
+    'DBI'               => 1.50,
     'HTML::Entities'    => 0,
     'Net::Google'       => 0.60,
     'Symbol'            => 0,
@@ -20,7 +20,7 @@ my %clean = (
 
 WriteMakefile(
     NAME        => "DBD::Google",
-    VERSION     => "0.50",
+    VERSION     => "0.51",
     PREREQ_PM   => \%PREREQ_PM,
     clean       => \%clean,
 );

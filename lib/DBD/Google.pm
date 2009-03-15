@@ -10,7 +10,7 @@ use DBD::Google::db;
 use DBD::Google::st;
 use DBD::Google::parser;
 
-$VERSION = "0.50";
+$VERSION = "0.51";
 $REVISION = $VERSION;
 
 # ----------------------------------------------------------------------

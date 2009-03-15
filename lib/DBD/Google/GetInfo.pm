@@ -11,7 +11,7 @@ use DBD::Google;
 # use DBI::Const::GetInfoType qw(%GetInfoType);
 # use DBI::Const::GetInfoReturn qw(%GetInfoReturnTypes %GetInfoReturnValues);
 
-$VERSION = "0.50";
+$VERSION = "0.51";
 my $sql_driver = 'Google';
 my $sql_ver_fmt = '%02d.%02d.%04d';   # ODBC version string: ##.##.#####
 my $sql_driver_ver = sprintf $sql_ver_fmt, split (/\./, $DBD::Google::VERSION);
